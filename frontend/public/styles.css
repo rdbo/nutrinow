@@ -513,10 +513,6 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
-.absolute {
-  position: absolute;
-}
-
 .sticky {
   position: sticky;
 }
@@ -624,3 +620,14 @@ video {
   transition-duration: 150ms;
 }
 
+@font-face {
+  font-family: "Itim";
+
+  font-weight: normal;
+
+  src: url("@/assets/fonts/Itim/Itim-Regular.ttf");
+}
+
+body {
+  font-family: "Itim";
+}

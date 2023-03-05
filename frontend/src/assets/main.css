@@ -2,3 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "Itim";
+    font-weight: normal;
+    src: url("@/assets/fonts/Itim/Itim-Regular.ttf");
+}
+
+body {
+    font-family: "Itim";
+}
