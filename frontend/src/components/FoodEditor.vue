@@ -3,6 +3,8 @@ import { ref, defineProps } from "vue";
 const props = defineProps({
     foodInfo: {}
 });
+
+const food = ref({});
 </script>
 
 <template>
@@ -13,6 +15,8 @@ const props = defineProps({
         </div>
         <div v-else>
             <h1>Add Food</h1>
+            <h2>Name: {{ food.name }}</h2>
+            <input v-model="food.name">
         </div>
     </div>
 </template>
