@@ -59,6 +59,7 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Vitamin E', 'mg'),
     ('Vitamin K', 'μg'),
     ('Omega-3', 'mg'),
+    ('Omega-6', 'g'),
     ('Cholesterol', 'mg'),
     /* Macrominerals */
     ('Calcium', 'mg'),
