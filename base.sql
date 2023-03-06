@@ -31,6 +31,7 @@ CREATE TABLE serving_nutrient (
     serving_id SERIAL,
     nutrient_id SERIAL,
     amount FLOAT NOT NULL,
+    calories FLOAT NOT NULL,
     FOREIGN KEY (serving_id) REFERENCES serving(id),
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
 );
