@@ -636,12 +636,6 @@ body {
   font-family: "Itim";
 }
 
-@media (min-width: 640px) {
-  .sm\:flex-col {
-    flex-direction: column;
-  }
-}
-
 @media (min-width: 768px) {
   .md\:flex-row {
     flex-direction: row;
