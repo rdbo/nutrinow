@@ -39,6 +39,7 @@ INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */
     ('Protein', 'g'),
     ('Carbohydrate', 'g'),
+    ('Fiber', 'g'),
     ('Saturated Fat', 'g'),
     ('Unsaturated Fat', 'g'),
     ('Trans Fat', 'g'),
@@ -62,4 +63,8 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Calcium', 'mg'),
     ('Magnesium', 'mg'),
     ('Potassium', 'mg'),
-    ('Sodium', 'mg');
+    ('Sodium', 'mg'),
+    /* Trace Minerals */
+    ('Iron', 'mg'),
+    ('Iodine', 'μg');
+
