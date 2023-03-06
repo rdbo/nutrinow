@@ -8,8 +8,10 @@ CREATE DATABASE nutrinow;
 CREATE TABLE user_account (
     id SERIAL,
     name VARCHAR(100) NOT NULL,
+    email VARCHAR(254) UNIQUE NOT NULL,
     gender CHAR(1) NOT NULL,
     birthdate DATE NOT NULL,
+    password_hash CHAR(64) NOT NULL,
     PRIMARY KEY(id)
 );
 
@@ -26,6 +28,15 @@ CREATE TABLE user_nutrition (
     daily_intake FLOAT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user_account(id),
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
+);
+
+/* NOTE: There should be a cron job that will automatically delete expired session tokens */
+CREATE TABLE user_session (
+    id UUID NOT NULL,
+    user_id SERIAL,
+    expiry_date DATE NOT NULL,
+    PRIMARY KEY(id)
+    FOREIGN KEY (user_id) REFERENCES user_account(id);
 );
 
 CREATE TABLE food (
@@ -77,6 +88,9 @@ CREATE TABLE diet_meal (
     FOREIGN KEY (diet_id) REFERENCES diet(id),
     FOREIGN KEY (meal_id) REFERENCES meal(id)
 );
+
+INSERT INTO user_account(name, email, gender, birthdate, password_hash) VALUES
+    ('Admin', 'admin@localhost', 'M', '1970-01-01', 'f1884986dc7b68fb7ac18c5a7dd2bea6467565300378713fca1fe468bc4be6a6'); /* Password: nutrinow_admin */
 
 INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */
