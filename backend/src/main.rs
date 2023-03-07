@@ -8,18 +8,18 @@ use rocket_db_pools::sqlx::{self, Row};
 
 #[derive(Database)]
 #[database("nutrinow")]
-struct StoredData(sqlx::PgPool);
+struct DbHandler(sqlx::PgPool);
 
 #[get("/foods")]
-async fn api_foods(mut db: Connection<Logs>) -> String {
+async fn api_foods(mut db: Connection<DbHandler>) -> String {
     sqlx::query("SELECT name FROM food")
-        .fetch_all(&mut *db).await?
+        .fetch_one(&mut *db).await.unwrap().try_get(0).unwrap()
 }
 
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
-        .attach(StoredData::init())
+        .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/api", routes![api_foods])
 }

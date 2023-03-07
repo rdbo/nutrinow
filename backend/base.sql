@@ -126,3 +126,5 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Iron', 'mg'),
     ('Iodine', 'μg');
 
+INSERT INTO food(name) VALUES
+    ('Chicken Breast');
