@@ -42,7 +42,9 @@ CREATE TABLE user_session (
 CREATE TABLE food (
     id SERIAL,
     name VARCHAR(100) NOT NULL,
-    PRIMARY KEY(id)
+    user_id SERIAL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (user_id) REFERENCES user_account(id)
 );
 
 CREATE TABLE serving (
@@ -126,5 +128,5 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Iron', 'mg'),
     ('Iodine', 'μg');
 
-INSERT INTO food(name) VALUES
-    ('Chicken Breast');
+INSERT INTO food(name, user_id) VALUES
+    ('Chicken Breast', 1);
