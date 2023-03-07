@@ -35,8 +35,8 @@ CREATE TABLE user_session (
     id UUID NOT NULL,
     user_id SERIAL,
     expiry_date DATE NOT NULL,
-    PRIMARY KEY(id)
-    FOREIGN KEY (user_id) REFERENCES user_account(id);
+    PRIMARY KEY(id),
+    FOREIGN KEY (user_id) REFERENCES user_account(id)
 );
 
 CREATE TABLE food (

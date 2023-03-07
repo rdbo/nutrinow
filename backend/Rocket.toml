@@ -1,0 +1,2 @@
+[default.databases.nutrinow]
+url = "postgres://postgres@localhost:5432/nutrinow"
