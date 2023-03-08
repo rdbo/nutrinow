@@ -1,10 +1,12 @@
 use rocket::{
     *,
-    fs::{FileServer, relative}
+    fs::{FileServer, relative, NamedFile}
 };
 
 use rocket_db_pools::{Database, Connection};
 use rocket_db_pools::sqlx::{self, Row};
+
+use std::path::PathBuf;
 
 #[derive(Database)]
 #[database("nutrinow")]
@@ -23,10 +25,18 @@ async fn api_foods(mut db: Connection<DbHandler>) -> String {
     result
 }
 
+// Handle Vue routes that are not static files
+#[get("/<_file..>")]
+async fn vue_routes(_file : PathBuf) -> Option<NamedFile> {
+    let index_path = PathBuf::from(relative!("static")).join("index.html");
+    NamedFile::open(index_path).await.ok()
+}
+
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
+        .mount("/", routes![vue_routes])
         .mount("/api", routes![api_foods])
 }

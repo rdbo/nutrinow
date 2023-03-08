@@ -1,4 +1,6 @@
 <script setup>
+import { useRouter } from "vue-router";
+const router = useRouter();
 </script>
 
 <template>
@@ -11,7 +13,7 @@
             Source: https://www.pngall.com/diet-png/download/53680
         -->
         <img src="@/assets/imgs/healthy-foods.png" class="w-96 py-4"/>
-        <button class="text-gray-800 border-2 border-gray-700 uppercase text-2xl bg-primary-100 px-4 py-4 rounded-md hover:bg-secondary-100">Get Started</button>
+        <button @click="router.push({ name: 'login' })" class="text-gray-800 border-2 border-gray-700 uppercase text-2xl bg-primary-100 px-4 py-4 rounded-md hover:bg-secondary-100">Get Started</button>
     </div>
 </template>
 

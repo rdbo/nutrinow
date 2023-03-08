@@ -10,6 +10,7 @@ import { RouterLink, RouterView } from 'vue-router'
                     <div class="grow uppercase text-lg flex justify-center">
                         <RouterLink :to="{name: 'home'}" class="nav-item">Home</RouterLink>
                         <RouterLink :to="{name: 'about'}" class="nav-item">About</RouterLink>
+                        <RouterLink :to="{name: 'login'}" class="nav-item">Login</RouterLink>
                     </div>
                 </nav>
         </header>
