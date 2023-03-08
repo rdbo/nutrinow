@@ -26,8 +26,8 @@ async fn api_foods(mut db: Connection<DbHandler>) -> String {
 }
 
 // Handle Vue routes that are not static files
-#[get("/<_file..>")]
-async fn vue_routes(_file : PathBuf) -> Option<NamedFile> {
+#[get("/<_..>", rank = 12)]
+async fn vue_routes() -> Option<NamedFile> {
     let index_path = PathBuf::from(relative!("static")).join("index.html");
     NamedFile::open(index_path).await.ok()
 }
