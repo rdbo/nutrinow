@@ -1,43 +1,67 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 
 const router = useRouter();
+
+const password = ref(null);
+const confirmPassword = ref(null)
+const errors = ref([]);
+
+function checkForm(e) {
+    errors.value = [];
+
+    if (password.value != confirmPassword.value) {
+        errors.value.push("Passwords don't match");
+    }
+
+    if (errors.value.length > 0) {
+        e.preventDefault();
+    }
+}
+
 </script>
 
 <template>
     <div class="max-w-lg mx-auto my-4 flex flex-col justify-center items-center bg-secondary-100 border-2 border-gray-700 px-4 py-4 rounded-md text-gray-700">
         <h1 class="text-4xl">Register</h1>
-        <form method="POST" class="flex flex-col">
+        <form @submit="checkForm" method="POST" class="flex flex-col">
             <div>
                 <label>Name:</label>
-                <input type="text" required/>
+                <input name="name" type="text" required/>
             </div>
             <div>
                 <label>Birthdate:</label>
-                <input type="date" required/>
+                <input name="birthdate" type="date" required/>
             </div>
             <div>
                 <label>E-Mail:</label>
-                <input type="email" required/>
+                <input name="email" type="email" required/>
             </div>
             <div>
                 <label>Password:</label>
-                <input type="password" required/>
+                <input name="password" type="password" v-model="password" required/>
             </div>
             <div>
                 <label>Confirm Password:</label>
-                <input type="password" required/>
+                <input type="password" v-model="confirmPassword" required/>
             </div>
             <div>
                 <label>Gender:</label>
                 <div class="gender">
-                    <input id="gender_male" name="gender" type="radio" value="Male" required>
-                    <label for="gender_male">Male</label>
+                    <input name="gender" type="radio" value="M" required>
+                    <label>Male</label>
                 </div>
                 <div class="gender">
-                    <input id="gender_female" name="gender" type="radio" value="Female" required>
-                    <label for="gender_female">Female</label>
+                    <input name="gender" type="radio" value="F" required>
+                    <label>Female</label>
                 </div>
+            </div>
+            <div v-if="errors.length">
+                <label class="text-red-500">Errors:</label>
+                <ul>
+                    <li v-for="error in errors" class="text-red-500 text-xl">{{ error }}</li>
+                </ul>
             </div>
             <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500">Create Account</button>
             <a @click="router.push({ name: 'login' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Already have an account? Log-in now!</a>
@@ -84,5 +108,9 @@ a:hover {
 
 .gender input {
     @apply mx-2;
+}
+
+ul {
+    list-style: square inside;
 }
 </style>
