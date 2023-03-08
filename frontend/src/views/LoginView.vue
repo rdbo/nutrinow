@@ -9,23 +9,15 @@ const router = useRouter();
         <h1 class="text-4xl">Login</h1>
         <form method="POST" class="flex flex-col">
             <div>
-                <label>Name: </label>
-                <input type="text"/>
-            </div>
-            <div>
                 <label>E-Mail:</label>
-                <input type="email"/>
+                <input type="email" required/>
             </div>
             <div>
-                <label>Password</label>
-                <input type="password"/>
-            </div>
-            <div>
-                <label>Confirm Password</label>
-                <input type="password"/>
+                <label>Password:</label>
+                <input type="password" required/>
             </div>
             <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500">Log-in</button>
-            <a @click="router.push({ name: 'home' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Don't have an account? Register now!</a>
+            <a @click="router.push({ name: 'register' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Don't have an account? Register now!</a>
         </form>
     </div>
 </template>

@@ -11,6 +11,7 @@ import { RouterLink, RouterView } from 'vue-router'
                         <RouterLink :to="{name: 'home'}" class="nav-item">Home</RouterLink>
                         <RouterLink :to="{name: 'about'}" class="nav-item">About</RouterLink>
                         <RouterLink :to="{name: 'login'}" class="nav-item">Login</RouterLink>
+                        <RouterLink :to="{name: 'register'}" class="nav-item">Register</RouterLink>
                     </div>
                 </nav>
         </header>
