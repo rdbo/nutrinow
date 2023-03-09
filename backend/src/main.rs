@@ -80,11 +80,37 @@ async fn register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>)
     Redirect::to(uri!("/login"))
 }
 
+// Login POST
+#[derive(FromForm)]
+struct LoginData<'a> {
+    email: &'a str,
+    password: &'a str
+}
+
+/*
+ * TODO:
+ *   Remove unwrap (check for errors)
+ */
+#[post("/login", data = "<data>")]
+async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Redirect {
+    let result = sqlx::query("SELECT password_hash FROM user_account WHERE email = $1")
+        .bind(data.email)
+        .fetch_one(&mut *db).await.unwrap();
+
+    let password_hash = result.try_get::<&str, usize>(0).unwrap();
+    let attempt_hash = sha256str(data.password);
+    if attempt_hash == password_hash {
+        println!("Login successful");
+    }
+
+    Redirect::to(uri!("/"))
+}
+
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
-        .mount("/", routes![vue_routes, register])
+        .mount("/", routes![vue_routes, register, login])
         .mount("/api", routes![api_foods])
 }

@@ -10,11 +10,11 @@ const router = useRouter();
         <form method="POST" class="flex flex-col">
             <div>
                 <label>E-Mail:</label>
-                <input type="email" required/>
+                <input name="email" type="email" required/>
             </div>
             <div>
                 <label>Password:</label>
-                <input type="password" required/>
+                <input name="password" type="password" required/>
             </div>
             <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500">Log-in</button>
             <a @click="router.push({ name: 'register' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Don't have an account? Register now!</a>
