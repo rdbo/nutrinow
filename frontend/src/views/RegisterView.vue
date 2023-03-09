@@ -32,7 +32,7 @@ function checkForm(e) {
             </div>
             <div>
                 <label>Birthdate:</label>
-                <input name="birthdate" type="date" required/>
+                <input name="birthdate" type="date" min="1900-01-01" :max="(new Date()).toISOString().split('T')[0]" required/>
             </div>
             <div>
                 <label>E-Mail:</label>

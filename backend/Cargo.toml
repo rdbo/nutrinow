@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 rocket = "0.5.0-rc.2"
+sqlx = { version = "0.5", features = ["chrono"] }
 rocket_db_pools = { version = "0.1.0-rc.2", features = ["sqlx_postgres"] }
+sha2 = "0.10.6"
+chrono = "0.4.23"

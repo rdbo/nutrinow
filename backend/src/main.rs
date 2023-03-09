@@ -1,19 +1,33 @@
 use rocket::{
     *,
-    fs::{FileServer, relative, NamedFile}
+    fs::{FileServer, relative, NamedFile},
+    form::Form,
+    response::Redirect
 };
 
 use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::sqlx::{self, Row};
+use rocket_db_pools::sqlx::{
+    self, Row
+};
+
+use sha2::{Sha256, Digest};
 
 use std::path::PathBuf;
+
+use chrono::NaiveDate;
+
+fn sha256str(string : &str) -> String {
+    let mut hash = Sha256::new();
+    hash.update(string);
+    format!("{:x}", hash.finalize())
+}
 
 #[derive(Database)]
 #[database("nutrinow")]
 struct DbHandler(sqlx::PgPool);
 
 #[get("/foods")]
-async fn api_foods(mut db: Connection<DbHandler>) -> String {
+async fn api_foods(mut db : Connection<DbHandler>) -> String {
     let rows = sqlx::query("SELECT name, user_id FROM food")
         .fetch_all(&mut *db).await.unwrap();
 
@@ -32,11 +46,45 @@ async fn vue_routes() -> Option<NamedFile> {
     NamedFile::open(index_path).await.ok()
 }
 
+// Register POST
+#[derive(FromForm)]
+struct RegisterData<'a> {
+    name: &'a str,
+    birthdate: &'a str,
+    email: &'a str,
+    password: &'a str,
+    gender: &'a str
+}
+
+/*
+ * TODO: 
+ *   Check if e-mail is already registered
+ *   Validate user input
+ *   Remove unwrap (check for errors)
+ */
+#[post("/register", data = "<data>")]
+async fn register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Redirect {
+    let birthdate = NaiveDate::parse_from_str(data.birthdate, "%Y-%m-%d").unwrap();
+    let password_hash = sha256str(data.password);
+    sqlx::query(
+        "INSERT INTO user_account(name, birthdate, email, password_hash, gender) VALUES ($1, $2, $3, $4, $5)"
+        )
+        .bind(data.name)
+        .bind(birthdate)
+        .bind(data.email)
+        .bind(password_hash)
+        .bind(data.gender)
+        .execute(&mut *db)
+        .await
+        .unwrap();
+    Redirect::to(uri!("/login"))
+}
+
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
-        .mount("/", routes![vue_routes])
+        .mount("/", routes![vue_routes, register])
         .mount("/api", routes![api_foods])
 }
