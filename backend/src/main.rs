@@ -5,16 +5,18 @@ use rocket::{
     response::Redirect
 };
 
+use chrono::Datelike;
+
 use rocket_db_pools::{Database, Connection};
 use rocket_db_pools::sqlx::{
-    self, Row
+    self, Row,
+    types::chrono::{NaiveDate, Utc},
+    types::uuid::Uuid
 };
 
 use sha2::{Sha256, Digest};
 
 use std::path::PathBuf;
-
-use chrono::NaiveDate;
 
 fn sha256str(string : &str) -> String {
     let mut hash = Sha256::new();
@@ -90,18 +92,29 @@ struct LoginData<'a> {
 /*
  * TODO:
  *   Remove unwrap (check for errors)
+ *   Improve failed login attempt
  */
 #[post("/login", data = "<data>")]
 async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Redirect {
-    let result = sqlx::query("SELECT password_hash FROM user_account WHERE email = $1")
+    let result = sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
         .bind(data.email)
         .fetch_one(&mut *db).await.unwrap();
 
     let password_hash = result.try_get::<&str, usize>(0).unwrap();
     let attempt_hash = sha256str(data.password);
-    if attempt_hash == password_hash {
-        println!("Login successful");
+    if attempt_hash != password_hash {
+        return Redirect::to(uri!("/login"));
     }
+
+    let user_id = result.try_get::<i32, usize>(1).unwrap();
+    let session_id = Uuid::new_v4();
+    let expiry_date = Utc::now();
+    let expiry_date = expiry_date.with_year(expiry_date.year() + 1);
+    sqlx::query("INSERT INTO user_session(id, user_id, expiry_date) VALUES ($1, $2, $3)")
+        .bind(session_id)
+        .bind(user_id)
+        .bind(expiry_date)
+        .execute(&mut *db).await.unwrap();
 
     Redirect::to(uri!("/"))
 }
