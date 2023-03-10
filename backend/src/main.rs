@@ -2,7 +2,8 @@ use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
     form::Form,
-    response::Redirect
+    response::Redirect,
+    http::{CookieJar, Cookie}
 };
 
 use chrono::Datelike;
@@ -93,9 +94,10 @@ struct LoginData<'a> {
  * TODO:
  *   Remove unwrap (check for errors)
  *   Improve failed login attempt
+ *   Add expiration date on cookie
  */
 #[post("/login", data = "<data>")]
-async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Redirect {
+async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>, cookies : &CookieJar<'_>) -> Redirect {
     let result = sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
         .bind(data.email)
         .fetch_one(&mut *db).await.unwrap();
@@ -115,6 +117,8 @@ async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Re
         .bind(user_id)
         .bind(expiry_date)
         .execute(&mut *db).await.unwrap();
+
+    cookies.add(Cookie::new("session_id", format!("{}", session_id)));
 
     Redirect::to(uri!("/"))
 }
