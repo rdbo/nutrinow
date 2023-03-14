@@ -7,7 +7,7 @@ const router = useRouter();
 <template>
     <div class="max-w-lg mx-auto my-4 flex flex-col justify-center items-center bg-secondary-100 border-2 border-gray-700 px-4 py-4 rounded-md text-gray-700">
         <h1 class="text-4xl">Login</h1>
-        <form method="POST" class="flex flex-col">
+        <form method="POST" action="/api/login" class="flex flex-col">
             <div>
                 <label>E-Mail:</label>
                 <input name="email" type="email" required/>

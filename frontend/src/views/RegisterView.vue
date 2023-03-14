@@ -25,7 +25,7 @@ function checkForm(e) {
 <template>
     <div class="max-w-lg mx-auto my-4 flex flex-col justify-center items-center bg-secondary-100 border-2 border-gray-700 px-4 py-4 rounded-md text-gray-700">
         <h1 class="text-4xl">Register</h1>
-        <form @submit="checkForm" method="POST" class="flex flex-col">
+        <form @submit="checkForm" action="/api/register" method="POST" class="flex flex-col">
             <div>
                 <label>Name:</label>
                 <input name="name" type="text" required/>

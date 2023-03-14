@@ -2,8 +2,7 @@ use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
     form::Form,
-    response::Redirect,
-    http::{CookieJar, Cookie}
+    serde::{Serialize, json::Json}
 };
 
 use chrono::Datelike;
@@ -42,13 +41,6 @@ async fn api_foods(mut db : Connection<DbHandler>) -> String {
     result
 }
 
-// Handle Vue routes that are not static files
-#[get("/<_..>", rank = 12)]
-async fn vue_routes() -> Option<NamedFile> {
-    let index_path = PathBuf::from(relative!("static")).join("index.html");
-    NamedFile::open(index_path).await.ok()
-}
-
 // Register POST
 #[derive(FromForm)]
 struct RegisterData<'a> {
@@ -59,14 +51,30 @@ struct RegisterData<'a> {
     gender: &'a str
 }
 
+#[derive(Serialize)]
+struct RegisterResponse {
+    err: &'static str
+}
+
+impl RegisterResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
 /*
  * TODO: 
  *   Check if e-mail is already registered
  *   Validate user input
  *   Remove unwrap (check for errors)
+ *   Don't redirect (SPA)
  */
 #[post("/register", data = "<data>")]
-async fn register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Redirect {
+async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Json<RegisterResponse> {
     let birthdate = NaiveDate::parse_from_str(data.birthdate, "%Y-%m-%d").unwrap();
     let password_hash = sha256str(data.password);
     sqlx::query(
@@ -80,7 +88,7 @@ async fn register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>)
         .execute(&mut *db)
         .await
         .unwrap();
-    Redirect::to(uri!("/login"))
+    Json(RegisterResponse::ok())
 }
 
 // Login POST
@@ -90,37 +98,69 @@ struct LoginData<'a> {
     password: &'a str
 }
 
-/*
- * TODO:
- *   Remove unwrap (check for errors)
- *   Improve failed login attempt
- *   Add expiration date on cookie
- */
-#[post("/login", data = "<data>")]
-async fn login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>, cookies : &CookieJar<'_>) -> Redirect {
-    let result = sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
-        .bind(data.email)
-        .fetch_one(&mut *db).await.unwrap();
+#[derive(Serialize)]
+struct LoginResponse {
+    session_id : String,
+    err: &'static str
+}
 
-    let password_hash = result.try_get::<&str, usize>(0).unwrap();
+impl LoginResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { session_id: "".to_string(), err: msg }
+    }
+
+    fn ok(session_id : String) -> Self {
+        Self { session_id : session_id, err: "" }
+    }
+}
+
+#[post("/login", data = "<data>")]
+async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Json<LoginResponse> {
+    let get_account_details = async {
+        sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
+            .bind(data.email)
+            .fetch_one(&mut *db).await
+    };
+    let result = match get_account_details.await {
+        Ok(r) => r,
+        _ => return Json(LoginResponse::err("unable to find user account in database"))
+    };
+
+    let password_hash = match result.try_get::<&str, usize>(0) {
+        Ok(val) => val,
+        _ => return Json(LoginResponse::err("missing account password hash"))
+    };
+
     let attempt_hash = sha256str(data.password);
     if attempt_hash != password_hash {
-        return Redirect::to(uri!("/login"));
+        return Json(LoginResponse::err("password does not match"));
     }
 
     let user_id = result.try_get::<i32, usize>(1).unwrap();
     let session_id = Uuid::new_v4();
     let expiry_date = Utc::now();
     let expiry_date = expiry_date.with_year(expiry_date.year() + 1);
-    sqlx::query("INSERT INTO user_session(id, user_id, expiry_date) VALUES ($1, $2, $3)")
-        .bind(session_id)
-        .bind(user_id)
-        .bind(expiry_date)
-        .execute(&mut *db).await.unwrap();
 
-    cookies.add(Cookie::new("session_id", format!("{}", session_id)));
+    let gen_session = async {
+        sqlx::query("INSERT INTO user_session(id, user_id, expiry_date) VALUES ($1, $2, $3)")
+            .bind(session_id)
+            .bind(user_id)
+            .bind(expiry_date)
+            .execute(&mut *db).await
+    };
 
-    Redirect::to(uri!("/"))
+    if let Err(_) = gen_session.await {
+        return Json(LoginResponse::err("failed to generate user session"));
+    }
+
+    Json(LoginResponse::ok(session_id.to_string()))
+}
+
+// Handle Vue routes that are not static files
+#[get("/<_..>", rank = 12)]
+async fn vue_routes() -> Option<NamedFile> {
+    let index_path = PathBuf::from(relative!("static")).join("index.html");
+    NamedFile::open(index_path).await.ok()
 }
 
 #[launch]
@@ -128,6 +168,6 @@ async fn rocket() -> _ {
     rocket::build()
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
-        .mount("/", routes![vue_routes, register, login])
-        .mount("/api", routes![api_foods])
+        .mount("/", routes![vue_routes])
+        .mount("/api", routes![api_foods, api_login, api_register])
 }
