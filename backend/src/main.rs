@@ -75,19 +75,26 @@ impl RegisterResponse {
  */
 #[post("/register", data = "<data>")]
 async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Json<RegisterResponse> {
-    let birthdate = NaiveDate::parse_from_str(data.birthdate, "%Y-%m-%d").unwrap();
+    let birthdate = match NaiveDate::parse_from_str(data.birthdate, "%Y-%m-%d") {
+        Ok(r) => r,
+        _ => return Json(RegisterResponse::err("invalid birthdate format"))
+    };
     let password_hash = sha256str(data.password);
-    sqlx::query(
-        "INSERT INTO user_account(name, birthdate, email, password_hash, gender) VALUES ($1, $2, $3, $4, $5)"
-        )
-        .bind(data.name)
-        .bind(birthdate)
-        .bind(data.email)
-        .bind(password_hash)
-        .bind(data.gender)
-        .execute(&mut *db)
-        .await
-        .unwrap();
+    let create_account = async {
+        sqlx::query(
+            "INSERT INTO user_account(name, birthdate, email, password_hash, gender) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(data.name)
+            .bind(birthdate)
+            .bind(data.email)
+            .bind(password_hash)
+            .bind(data.gender)
+            .execute(&mut *db)
+            .await
+    };
+    if let Err(_) = create_account.await {
+        return Json(RegisterResponse::err("failed to create account"));
+    }
     Json(RegisterResponse::ok())
 }
 

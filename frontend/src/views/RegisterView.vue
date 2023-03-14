@@ -1,46 +1,80 @@
 <script setup>
-import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { useRouter } from "vue-router";
+import { ref } from "vue";
+import axios from "axios";
 
 const router = useRouter();
 
+const creatingAccount = ref(false);
 const password = ref(null);
 const confirmPassword = ref(null)
 const errors = ref([]);
+const nameForm = ref(null);
+const birthdateForm = ref(null);
+const emailForm = ref(null);
+const passwordForm = ref(null);
+const genderForm = ref(null);
 
-function checkForm(e) {
+function checkForm() {
     errors.value = [];
 
     if (password.value != confirmPassword.value) {
         errors.value.push("Passwords don't match");
     }
 
-    if (errors.value.length > 0) {
-        e.preventDefault();
-    }
+    return errors.value.length == 0;
 }
 
+function registerHandler(e) {
+    e.preventDefault();
+    creatingAccount.value = true;
+    if (!checkForm()) {
+        return;
+    }
+
+    let registerData = new FormData();
+    registerData.append("name", nameForm.value.value);
+    registerData.append("birthdate", birthdateForm.value.value);
+    registerData.append("email", emailForm.value.value);
+    registerData.append("password", passwordForm.value.value);
+    registerData.append("gender", genderForm.value.value);
+
+    axios.post("/api/register", registerData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Show error message to user
+            console.log("failed to log in");
+            creatingAccount.value = false;
+        } else {
+            router.push({ name: "login" });
+        }
+    }).catch(function (err) {
+        // TODO: Handle error
+        console.log("/api/register request error: " + err);
+        waitingLogin.value = false;
+    });
+}
 </script>
 
 <template>
     <div class="max-w-lg mx-auto my-4 flex flex-col justify-center items-center bg-secondary-100 border-2 border-gray-700 px-4 py-4 rounded-md text-gray-700">
         <h1 class="text-4xl">Register</h1>
-        <form @submit="checkForm" action="/api/register" method="POST" class="flex flex-col">
+        <form @submit="registerHandler" action="/api/register" method="POST" class="flex flex-col">
             <div>
                 <label>Name:</label>
-                <input name="name" type="text" required/>
+                <input ref="nameForm" name="name" type="text" required/>
             </div>
             <div>
                 <label>Birthdate:</label>
-                <input name="birthdate" type="date" min="1900-01-01" :max="(new Date()).toISOString().split('T')[0]" required/>
+                <input ref="birthdateForm" name="birthdate" type="date" min="1900-01-01" :max="(new Date()).toISOString().split('T')[0]" required/>
             </div>
             <div>
                 <label>E-Mail:</label>
-                <input name="email" type="email" required/>
+                <input ref="emailForm" name="email" type="email" required/>
             </div>
             <div>
                 <label>Password:</label>
-                <input name="password" type="password" v-model="password" required/>
+                <input ref="passwordForm" name="password" type="password" v-model="password" required/>
             </div>
             <div>
                 <label>Confirm Password:</label>
@@ -49,11 +83,11 @@ function checkForm(e) {
             <div>
                 <label>Gender:</label>
                 <div class="gender">
-                    <input name="gender" type="radio" value="M" required>
+                    <input ref="genderForm" name="gender" type="radio" value="M" required>
                     <label>Male</label>
                 </div>
                 <div class="gender">
-                    <input name="gender" type="radio" value="F" required>
+                    <input ref="genderForm" name="gender" type="radio" value="F" required>
                     <label>Female</label>
                 </div>
             </div>
@@ -63,7 +97,10 @@ function checkForm(e) {
                     <li v-for="error in errors" class="text-red-500 text-xl">{{ error }}</li>
                 </ul>
             </div>
-            <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500">Create Account</button>
+            <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500" :class="{ 'btn-creating': creatingAccount }" :disabled="creatingAccount">
+                <span v-if="!creatingAccount">Create Account</span>
+                <span v-else>Creating Account...</span>
+            </button>
             <a @click="router.push({ name: 'login' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Already have an account? Log-in now!</a>
         </form>
     </div>
@@ -112,5 +149,13 @@ a:hover {
 
 ul {
     list-style: square inside;
+}
+
+.btn-creating {
+    @apply bg-gray-200;
+}
+
+.btn-creating:hover {
+    @apply bg-gray-400;
 }
 </style>

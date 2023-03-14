@@ -6,13 +6,11 @@ import axios from "axios";
 const router = useRouter();
 const emailForm = ref(null);
 const passwordForm = ref(null);
-const loginButton = ref(null);
 const waitingLogin = ref(false);
 
 function loginHandler(e) {
     e.preventDefault(); // prevent redirection
     waitingLogin.value = true;
-    loginButton.value.disabled = true; // prevent user from clicking button again
 
     let loginData = new FormData();
     loginData.append("email", emailForm.value.value);
@@ -48,7 +46,10 @@ function loginHandler(e) {
                 <label>Password:</label>
                 <input ref="passwordForm" name="password" type="password" required/>
             </div>
-            <button ref="loginButton" class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500" :class="{ 'btn-waiting': waitingLogin }"><span v-if="!waitingLogin">Log-in</span><span v-else>Logging in...</span></button>
+            <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500" :class="{ 'btn-waiting': waitingLogin }" :disabled="waitingLogin">
+                <span v-if="!waitingLogin">Log-in</span>
+                <span v-else>Logging in...</span>
+            </button>
             <a @click="router.push({ name: 'register' })" class="text-xl text-blue-500 cursor-pointer border-secondary-100 border-b-2">Don't have an account? Register now!</a>
         </form>
     </div>
