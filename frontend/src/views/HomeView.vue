@@ -3,7 +3,7 @@ import Welcome from "../components/Welcome.vue";
 import FoodEditor from "../components/FoodEditor.vue";
 import Dashboard from "../components/Dashboard.vue";
 
-const session_id = null;
+const session_id = $cookies.get("session_id");
 </script>
 
 <template>
