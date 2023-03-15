@@ -1,10 +1,20 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink, RouterView } from "vue-router";
+import axios from "axios";
 
 const session_id = ref(null);
 
 function logout() {
+    // tell the server to delete the session
+    let logoutData = new FormData();
+    logoutData.append("session_id", session_id.value);
+    axios.post("/api/logout", logoutData)
+    .catch(function (err) {
+        console.log("/api/logout request error: " + err);
+    });
+
+    // remove session from client side
     $cookies.remove("session_id");
     session_id.value = null;
 }

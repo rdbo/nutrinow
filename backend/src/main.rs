@@ -18,6 +18,8 @@ use sha2::{Sha256, Digest};
 
 use std::path::PathBuf;
 
+use std::str::FromStr;
+
 fn sha256str(string : &str) -> String {
     let mut hash = Sha256::new();
     hash.update(string);
@@ -27,19 +29,6 @@ fn sha256str(string : &str) -> String {
 #[derive(Database)]
 #[database("nutrinow")]
 struct DbHandler(sqlx::PgPool);
-
-#[get("/foods")]
-async fn api_foods(mut db : Connection<DbHandler>) -> String {
-    let rows = sqlx::query("SELECT name, user_id FROM food")
-        .fetch_all(&mut *db).await.unwrap();
-
-    let mut result = String::new();
-    for row in rows {
-        result = format!("{} : {} ; {}", row.get::<i32, usize>(1), row.get::<String, usize>(0), result);
-    }
-
-    result
-}
 
 // Register POST
 #[derive(FromForm)]
@@ -70,8 +59,6 @@ impl RegisterResponse {
  * TODO: 
  *   Check if e-mail is already registered
  *   Validate user input
- *   Remove unwrap (check for errors)
- *   Don't redirect (SPA)
  */
 #[post("/register", data = "<data>")]
 async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Json<RegisterResponse> {
@@ -163,6 +150,24 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -
     Json(LoginResponse::ok(session_id.to_string()))
 }
 
+// Logout POST
+#[derive(FromForm)]
+struct LogoutData<'a> {
+    session_id : &'a str
+}
+
+#[post("/logout", data = "<data>")]
+async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>) {
+    let session_id = match Uuid::from_str(data.session_id) {
+        Ok(r) => r,
+        _ => return
+    };
+
+    sqlx::query("DELETE FROM user_session WHERE id = $1")
+        .bind(session_id)
+        .execute(&mut *db).await.ok();
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -176,5 +181,5 @@ async fn rocket() -> _ {
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_foods, api_login, api_register])
+        .mount("/api", routes![api_login, api_register, api_logout])
 }
