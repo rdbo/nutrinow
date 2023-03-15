@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import axios from "axios";
 
 const router = useRouter();
+const emit = defineEmits(['update-session']);
+
 const emailForm = ref(null);
 const passwordForm = ref(null);
 const waitingLogin = ref(false);
@@ -20,6 +22,7 @@ function loginHandler(e) {
     .then(function (response) {
         if (response.data.session_id) {
             $cookies.set("session_id", response.data.session_id, "1y");
+            emit("update-session");
             router.push({ name: "home" });
         } else {
             // TODO: Show error message to user
