@@ -57,6 +57,19 @@ const lunch = [
         "fats": "8"
     }
 ];
+
+const nutrients = [
+    {
+        "name": "Vitamin A",
+        "intake": "100μg",
+        "desired": "120μg"
+    },
+    {
+        "name": "Vitamin D",
+        "intake": "100μg",
+        "desired": "120μg"
+    }
+]
 </script>
 
 <template>
@@ -71,7 +84,7 @@ const lunch = [
                 <Meal name="Lunch" :foods="lunch"/>
                 <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4">Add Meal</button>
             </div>
-            <NutritionTable/>
+            <NutritionTable :nutrients="nutrients"/>
         </div>
     </div>
 </template>
