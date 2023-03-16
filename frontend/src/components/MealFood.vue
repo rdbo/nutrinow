@@ -2,7 +2,7 @@
 import { TrashIcon } from "@heroicons/vue/20/solid";
 import { PencilSquareIcon } from "@heroicons/vue/20/solid";
 
-const props = defineProps(["food", "amount", "cals", "carbs", "prots", "fats"]);
+const props = defineProps(["name", "amount", "cals", "carbs", "prots", "fats"]);
 </script>
 
 <template>
@@ -20,7 +20,7 @@ const props = defineProps(["food", "amount", "cals", "carbs", "prots", "fats"]);
             <PencilSquareIcon class="w-6"/>
         </button>
         <div class="flex items-center justify-center text-center">
-            <p class="text-lg my-2 mx-2">{{ food }} ({{ amount }})</p>
+            <p class="text-lg my-2 mx-2">{{ name }} ({{ amount }})</p>
         </div>
     </div>
     <div class="text-gray-500 flex">
