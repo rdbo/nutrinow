@@ -61,13 +61,15 @@ const lunch = [
 const nutrients = [
     {
         "name": "Vitamin A",
-        "intake": "100μg",
-        "desired": "120μg"
+        "intake": "100",
+        "desired": "120",
+        "unit": "μg"
     },
     {
         "name": "Vitamin D",
-        "intake": "100μg",
-        "desired": "120μg"
+        "intake": "120",
+        "desired": "120",
+        "unit": "μg"
     }
 ]
 </script>
@@ -82,7 +84,7 @@ const nutrients = [
             <div>
                 <Meal name="Breakfest" :foods="breakfest" class="my-8"/>
                 <Meal name="Lunch" :foods="lunch"/>
-                <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4">Add Meal</button>
+                <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
             </div>
             <NutritionTable :nutrients="nutrients"/>
         </div>

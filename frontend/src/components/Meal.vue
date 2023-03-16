@@ -1,11 +1,18 @@
 <script setup>
 import MealFood from "./MealFood.vue";
+import { XCircleIcon } from "@heroicons/vue/20/solid";
+
 const props = defineProps(["name", "foods"]);
 </script>
 
 <template>
 <div class="border-gray-700 border-2 rounded-lg flex flex-col bg-secondary-100">
-    <h2 class="text-xl text-center border-b-2 border-gray-700 py-2 font-bold">{{ name }}</h2>
+    <div class="relative">
+        <h2 class="text-xl text-center border-b-2 border-gray-700 py-2 font-bold">{{ name }}</h2>
+        <button class="absolute right-0 top-0 py-2 px-4 text-xl">
+            <XCircleIcon class="w-6"/>
+        </button>
+    </div>
     <div>
         <MealFood v-for="food in foods" :name="food.name" :amount="food.amount" :cals="food.cals" :carbs="food.carbs" :prots="food.prots" :fats="food.fats"/>
     </div>
