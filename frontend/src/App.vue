@@ -28,7 +28,7 @@ updateSession();
 
 <template>
     <div class="min-h-screen">
-        <header class="sticky top-0">
+        <header class="sticky top-0 z-50">
                 <nav class="flex font-bold bg-gray-100 items-center flex-col md:flex-row">
                     <RouterLink :to="{ name: 'home' }" class="text-4xl px-2 drop-shadow-bold-sm flex items-center"><img class="w-16 mr-1" src="@/assets/imgs/apple.svg"/> <span class="text-primary-100">Nutri</span><span class="text-secondary-100">Now</span></RouterLink>
                     <div class="grow text-lg flex justify-center">
