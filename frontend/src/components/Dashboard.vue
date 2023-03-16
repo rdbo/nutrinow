@@ -22,10 +22,18 @@ import MealFood from "./MealFood.vue";
                     <MealFood name="White Rice" amount="100g" cals="500" carbs="50" prots="12" fats="10"/>
                     <MealFood name="Beans" amount="100g" cals="200" carbs="20" prots="10" fats="8"/>
                 </Meal>
+                <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4">Add Meal</button>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
+#btn_add_meal {
+    transition: all 0.2s ease-in-out;
+}
+
+#btn_add_meal:hover {
+    @apply bg-orange-400 text-gray-900;
+}
 </style>

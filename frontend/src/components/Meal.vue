@@ -9,7 +9,17 @@ const props = defineProps(["name"]);
         <slot></slot>
     </div>
     <div class="flex justify-center items-center">
-        <button class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>
+        <button id="btn_add_food" class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>
     </div>
 </div>
 </template>
+
+<style scoped>
+#btn_add_food {
+    transition: all 0.2s ease-in-out;
+}
+
+#btn_add_food:hover {
+    @apply bg-red-400 text-gray-900;
+}
+</style>
