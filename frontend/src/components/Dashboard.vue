@@ -1,13 +1,16 @@
 <script setup>
-import TrashIcon from "./TrashIcon.vue";
-import PencilSquareIcon from "./PencilSquareIcon.vue";
+import { TrashIcon } from "@heroicons/vue/20/solid";
+import { PencilSquareIcon } from "@heroicons/vue/20/solid";
+import DietDropdown from "./DietDropdown.vue";
 </script>
 
 <template>
-    <div class="mx-8 my-2 text-gray-800 max-w-4xl mx-8 md:mx-auto">
+    <div class="mx-8 my-2 text-gray-800 max-w-4xl mx-8 lg:mx-auto">
         <h1 class="text-2xl">Dashboard</h1>
         <div>
-            <div><p>Diet 1</p></div>
+            <div class="my-4">
+                <DietDropdown/>
+            </div>
             <div>
                 <div class="border-gray-700 border-2 rounded-lg flex flex-col bg-secondary-100">
                     <h2 class="text-xl text-center border-b-2 border-gray-700 py-2">Breakfest</h2>
@@ -23,10 +26,10 @@ import PencilSquareIcon from "./PencilSquareIcon.vue";
                                 </div>
                                 -->
                                 <button class="bg-gray-200 px-4 py-2 border-r-2 border-gray-700">
-                                    <PencilSquareIcon/>
+                                    <PencilSquareIcon class="w-6"/>
                                 </button>
                                 <div class="flex items-center justify-center text-center">
-                                    <p class="text-lg my-2 mx-2">Chicken Breast</p>
+                                    <p class="text-lg my-2 mx-2">Chicken Breast (100g)</p>
                                 </div>
                             </div>
                             <div class="text-gray-500 flex">
@@ -45,7 +48,7 @@ import PencilSquareIcon from "./PencilSquareIcon.vue";
                                     </div>
                                 </div>
                                 <button class="bg-red-300 text-red-500 px-4 py-2 flex items-center justify-center border-l-2 border-gray-700 py-4 px-4">
-                                    <TrashIcon/>
+                                    <TrashIcon class="w-6"/>
                                 </button>
                             </div>
                         </div>
