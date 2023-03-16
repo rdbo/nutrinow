@@ -4,9 +4,9 @@ import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 </script>
 
 <template>
-    <Menu as="div" class="relative inline-block text-left">
+    <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
         <div>
-            <MenuButton class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-2 ring-inset ring-gray-300 hover:bg-gray-50 w-56">
+            <MenuButton class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-2 ring-inset ring-gray-300 hover:bg-gray-50 md:w-56">
                 <p>Diet 1</p>
                 <div class="flex items-center">
                     <ChevronDownIcon class="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
