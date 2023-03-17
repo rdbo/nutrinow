@@ -1,3 +1,7 @@
+/*
+ * TODO: Return only error on bad requests
+ */
+
 use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
@@ -168,7 +172,7 @@ async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>)
         .execute(&mut *db).await.ok();
 }
 
-// Food Request
+// Food List Request
 
 /*
  * TODO:
@@ -178,6 +182,7 @@ async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>)
 
 #[derive(Serialize)]
 struct FoodInfo {
+    id: i32,
     name : String,
     cals: f32,
     carbo: f32,
@@ -188,8 +193,24 @@ struct FoodInfo {
 #[get("/foods")]
 async fn api_foods(mut db : Connection<DbHandler>) -> Json {
     /*
-     SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats');
+        SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats') ORDER BY food.id;
      */
+}
+
+// Food Request
+
+#[get("/food/<id>")]
+async fn api_food(id : i32, mut db : Connection<DbHandler>) -> Json {
+    let query_food = async { sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
+        .bind(id)
+        .execute(&mut *db)
+        .await
+    };
+
+    let food = match query_food.await {
+        Ok(r) => r,
+        Err(_) => return Json("failed to get food")
+    };
 }
 
 // Handle Vue routes that are not static files
