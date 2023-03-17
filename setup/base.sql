@@ -52,7 +52,6 @@ CREATE TABLE serving (
     food_id SERIAL,
     unit VARCHAR(100) NOT NULL,
     amount FLOAT NOT NULL,
-    calories FLOAT NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (food_id) REFERENCES food(id)
 );
@@ -133,17 +132,19 @@ INSERT INTO nutrient(name, unit) VALUES
     /* Trace Minerals */
     ('Iron', 'mg'),
     ('Zinc', 'mg'),
-    /* Others */
-    ('Water', 'ml');
+    /* Others (not really 'nutrients', but they are essential information) */
+    ('Water', 'ml'),
+    ('Calories', 'kcal');
 
 /* TODO: Import foods from USDA database */
 INSERT INTO food(name, user_id) VALUES
     ('Chicken Breast', 1),
     ('Skimmed Milk', 1);
 
-INSERT INTO serving(food_id, amount, unit, calories) VALUES
-    (1, '100', 'g', '165'), /* Chicken Breast */
-    (2, '200', 'ml', '72'); /* Skimmed Milk */
+INSERT INTO serving(food_id, amount, unit) VALUES
+    (1, '100', 'g'), /* Chicken Breast */
+    (1, '200', 'g'), /* Chicken Breast */
+    (2, '200', 'ml'); /* Skimmed Milk */
 
 INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
     (1, 1, 31), /* Protein */
@@ -175,7 +176,43 @@ INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
     (1, 27, 74), /* Sodium */
     (1, 28, 1.04), /* Iron */
     (1, 29, 1), /* Zinc */
-    (1, 30, 0.0653); /* Water */
+    (1, 30, 0.0653), /* Water */
+    (1, 31, 165); /* Calories */
+
+/* TODO: Update values */
+INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
+    (2, 1, 31), /* Protein */
+    (2, 2, 0), /* Carbohydrates */
+    (2, 3, 0), /* Sugar */
+    (2, 4, 0), /* Fiber */
+    (2, 5, 3.57), /* Fats */
+    (2, 6, 1.01), /* Saturated Fat */
+    (2, 7, 2.01), /* Unsaturated Fat */
+    (2, 8, 0), /* Trans Fat */
+    (2, 9, 6), /* Vitamin A */
+    (2, 10, 0), /* Vitamin B1 */
+    (2, 11, 0), /* Vitamin B2 */
+    (2, 12, 0), /* Vitamin B3 */
+    (2, 13, 0), /* Vitamin B5 */
+    (2, 14, 0.6), /* Vitamin B6 */
+    (2, 15, 0), /* Vitamin B7 */
+    (2, 16, 0), /* Vitamin B9 */
+    (2, 17, 0.34), /* Vitamin B12 */
+    (2, 18, 0), /* Vitamin C */
+    (2, 19, 0.1), /* Vitamin D */
+    (2, 20, 0.27), /* Vitamin E */
+    (2, 21, 0.3), /* Vitamin K */
+    (2, 22, 85), /* Cholesterol */
+    (2, 23, 15), /* Calcium */
+    (2, 24, 29), /* Magnesium */
+    (2, 25, 256), /* Potassium */
+    (2, 26, 228), /* Phosphorus */
+    (2, 27, 74), /* Sodium */
+    (2, 28, 1.04), /* Iron */
+    (2, 29, 1), /* Zinc */
+    (2, 30, 0.0653), /* Water */
+    (2, 31, 165); /* Calories */
+
 
 /* TODO: Add data for Skimmed Milk */
 

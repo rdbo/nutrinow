@@ -178,30 +178,144 @@ async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>)
  * TODO:
  *   Add sorting methods
  *   Limit results
+ *   Remove unwraps
  */
+
+#[derive(Serialize)]
+struct ServingNutrient {
+    name : String,
+    amount : f64,
+    unit: String
+}
 
 #[derive(Serialize)]
 struct FoodInfo {
     id: i32,
     name : String,
-    cals: f32,
-    carbo: f32,
-    proteins: f32,
-    fats: f32
+    serving_amount : f64,
+    serving_unit : String,
+    calories : ServingNutrient,
+    nutrients : Vec<ServingNutrient>
+}
+
+#[derive(Serialize)]
+struct FoodList {
+    foods: Vec<FoodInfo>,
+    err: &'static str
+}
+
+impl FoodList {
+    fn err(msg : &'static str) -> Self {
+        Self { foods: vec![], err: msg }
+    }
+
+    fn ok(food_list : Vec<FoodInfo>) -> Self {
+        Self { foods: food_list, err: "" }
+    }
 }
 
 #[get("/foods")]
-async fn api_foods(mut db : Connection<DbHandler>) -> Json {
-    /*
-        SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats') ORDER BY food.id;
-     */
+async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
+    let query_foods =  async {
+        sqlx::query("SELECT food.id AS food_id, food.name AS name, MIN(serving.id) AS serving_id FROM food JOIN serving ON serving.food_id = food.id GROUP BY food.id ORDER BY food.id")
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let foods = match query_foods.await {
+        Ok(r) => r,
+        Err(_) => return Json(FoodList::err("failed to query food entries"))
+    };
+
+    let mut food_list = FoodList::ok(vec![]);
+
+    for food in foods {
+        let food_id : i32 = food.try_get("food_id").unwrap();
+        let name : String = food.try_get("name").unwrap();
+        let serving_id : i32 = food.try_get("serving_id").unwrap();
+
+        let query_serving = async {
+            sqlx::query("SELECT amount, unit FROM serving WHERE serving.id = $1")
+            .bind(serving_id)
+            .fetch_one(&mut *db)
+            .await
+        };
+
+        let serving = match query_serving.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+        let serving_amount : f64 = serving.try_get("amount").unwrap();
+        let serving_unit : String = serving.try_get("unit").unwrap();
+
+        let query_calories = async {
+            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1 AND name = 'Calories'")
+            .bind(serving_id)
+            .fetch_one(&mut *db)
+            .await
+        };
+
+        let calories = match query_calories.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+
+        let calories_name : String = calories.try_get("name").unwrap();
+        let calories_amount : f64 = calories.try_get("amount").unwrap();
+        let calories_unit : String = calories.try_get("unit").unwrap();
+
+        let query_nutrients = async {
+            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1 AND name IN ('Carbohydrates', 'Protein', 'Fats')")
+            .bind(serving_id)
+            .fetch_all(&mut *db)
+            .await
+        };
+
+        let nutrients = match query_nutrients.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+
+        let mut nutrient_list : Vec<ServingNutrient> = vec![];
+        for nutrient in nutrients {
+            let nutrient_name : String = nutrient.try_get("name").unwrap();
+            let nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
+            let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+            let nutrient_item = ServingNutrient {
+                name : nutrient_name,
+                amount : nutrient_amount,
+                unit : nutrient_unit
+            };
+            nutrient_list.push(nutrient_item);
+        }
+
+        let calories = ServingNutrient {
+            name : calories_name,
+            amount : calories_amount,
+            unit : calories_unit
+        };
+
+        let food_item = FoodInfo {
+            id : food_id,
+            name,
+            serving_amount,
+            serving_unit,
+            calories,
+            nutrients : nutrient_list
+        };
+
+        food_list.foods.push(food_item);
+    }
+
+    Json(food_list)
 }
 
 // Food Request
-
+/*
 #[get("/food/<id>")]
 async fn api_food(id : i32, mut db : Connection<DbHandler>) -> Json {
-    let query_food = async { sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
+    let query_food = async {
+        sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
         .bind(id)
         .execute(&mut *db)
         .await
@@ -211,7 +325,10 @@ async fn api_food(id : i32, mut db : Connection<DbHandler>) -> Json {
         Ok(r) => r,
         Err(_) => return Json("failed to get food")
     };
+
+    Json("")
 }
+*/
 
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
@@ -226,5 +343,5 @@ async fn rocket() -> _ {
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods])
 }
