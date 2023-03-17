@@ -17,7 +17,7 @@ CREATE TABLE user_account (
 
 CREATE TABLE nutrient (
     id SERIAL,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     unit VARCHAR(100) NOT NULL,
     PRIMARY KEY(id)
 );
@@ -52,6 +52,7 @@ CREATE TABLE serving (
     food_id SERIAL,
     unit VARCHAR(100) NOT NULL,
     amount FLOAT NOT NULL,
+    calories FLOAT NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (food_id) REFERENCES food(id)
 );
@@ -60,7 +61,6 @@ CREATE TABLE serving_nutrient (
     serving_id SERIAL,
     nutrient_id SERIAL,
     amount FLOAT NOT NULL,
-    calories FLOAT NOT NULL,
     FOREIGN KEY (serving_id) REFERENCES serving(id),
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
 );
@@ -68,12 +68,15 @@ CREATE TABLE serving_nutrient (
 CREATE TABLE meal (
     id SERIAL,
     name VARCHAR(100) NOT NULL,
-    PRIMARY KEY(id)
+    user_id SERIAL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (user_id) REFERENCES user_account(id)
 );
 
 CREATE TABLE meal_serving (
     meal_id SERIAL,
     serving_id SERIAL,
+    amount FLOAT NOT NULL,
     FOREIGN KEY (meal_id) REFERENCES meal(id),
     FOREIGN KEY (serving_id) REFERENCES serving(id)
 );
@@ -81,7 +84,9 @@ CREATE TABLE meal_serving (
 CREATE TABLE diet (
     id SERIAL,
     name VARCHAR(100) NOT NULL,
-    PRIMARY KEY(id)
+    user_id SERIAL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (user_id) REFERENCES user_account(id)
 );
 
 CREATE TABLE diet_meal (
@@ -97,8 +102,10 @@ INSERT INTO user_account(name, email, gender, birthdate, password_hash) VALUES
 INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */
     ('Protein', 'g'),
-    ('Carbohydrate', 'g'),
+    ('Carbohydrates', 'g'), /* Total carbohydrates, including fiber and sugar */
+    ('Sugar', 'g'),
     ('Fiber', 'g'),
+    ('Fats', 'g'), /* Total fat, including saturated, unsaturated, and trans fat */
     ('Saturated Fat', 'g'),
     ('Unsaturated Fat', 'g'),
     ('Trans Fat', 'g'),
@@ -108,7 +115,7 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Vitamin B2', 'μg'),
     ('Vitamin B3', 'μg'),
     ('Vitamin B5', 'μg'),
-    ('Vitamin B6', 'μg'),
+    ('Vitamin B6', 'mg'),
     ('Vitamin B7', 'μg'),
     ('Vitamin B9', 'μg'),
     ('Vitamin B12', 'μg'),
@@ -116,17 +123,73 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Vitamin D', 'μg'),
     ('Vitamin E', 'mg'),
     ('Vitamin K', 'μg'),
-    ('Omega-3', 'mg'),
-    ('Omega-6', 'g'),
     ('Cholesterol', 'mg'),
     /* Macrominerals */
     ('Calcium', 'mg'),
     ('Magnesium', 'mg'),
     ('Potassium', 'mg'),
+    ('Phosphorus', 'mg'),
     ('Sodium', 'mg'),
     /* Trace Minerals */
     ('Iron', 'mg'),
-    ('Iodine', 'μg');
+    ('Zinc', 'mg'),
+    /* Others */
+    ('Water', 'ml');
 
+/* TODO: Import foods from USDA database */
 INSERT INTO food(name, user_id) VALUES
-    ('Chicken Breast', 1);
+    ('Chicken Breast', 1),
+    ('Skimmed Milk', 1);
+
+INSERT INTO serving(food_id, amount, unit, calories) VALUES
+    (1, '100', 'g', '165'), /* Chicken Breast */
+    (2, '200', 'ml', '72'); /* Skimmed Milk */
+
+INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
+    (1, 1, 31), /* Protein */
+    (1, 2, 0), /* Carbohydrates */
+    (1, 3, 0), /* Sugar */
+    (1, 4, 0), /* Fiber */
+    (1, 5, 3.57), /* Fats */
+    (1, 6, 1.01), /* Saturated Fat */
+    (1, 7, 2.01), /* Unsaturated Fat */
+    (1, 8, 0), /* Trans Fat */
+    (1, 9, 6), /* Vitamin A */
+    (1, 10, 0), /* Vitamin B1 */
+    (1, 11, 0), /* Vitamin B2 */
+    (1, 12, 0), /* Vitamin B3 */
+    (1, 13, 0), /* Vitamin B5 */
+    (1, 14, 0.6), /* Vitamin B6 */
+    (1, 15, 0), /* Vitamin B7 */
+    (1, 15, 0), /* Vitamin B9 */
+    (1, 15, 0.34), /* Vitamin B12 */
+    (1, 15, 0), /* Vitamin C */
+    (1, 15, 0.1), /* Vitamin D */
+    (1, 15, 0.27), /* Vitamin E */
+    (1, 15, 0.3), /* Vitamin K */
+    (1, 15, 85), /* Cholesterol */
+    (1, 15, 15), /* Calcium */
+    (1, 15, 29), /* Magnesium */
+    (1, 15, 256), /* Potassium */
+    (1, 15, 228), /* Phosphorus */
+    (1, 15, 74), /* Sodium */
+    (1, 15, 1.04), /* Iron */
+    (1, 15, 1), /* Zinc */
+    (1, 15, 0.0653); /* Water */
+
+/* TODO: Add data for Skimmed Milk */
+
+INSERT INTO meal(name, user_id) VALUES
+    ('Breakfest', 1),
+    ('Lunch', 1);
+
+INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES
+    (1, 1, 50),
+    (2, 1, 100);
+
+INSERT INTO diet(name, user_id) VALUES
+    ('Diet 1', 1);
+
+INSERT INTO diet_meal VALUES
+    (1, 1),
+    (1, 2);
