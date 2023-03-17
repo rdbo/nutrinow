@@ -168,6 +168,30 @@ async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>)
         .execute(&mut *db).await.ok();
 }
 
+// Food Request
+
+/*
+ * TODO:
+ *   Add sorting methods
+ *   Limit results
+ */
+
+#[derive(Serialize)]
+struct FoodInfo {
+    name : String,
+    cals: f32,
+    carbo: f32,
+    proteins: f32,
+    fats: f32
+}
+
+#[get("/foods")]
+async fn api_foods(mut db : Connection<DbHandler>) -> Json {
+    /*
+     * SELECT * FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats');
+     */
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {

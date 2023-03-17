@@ -161,21 +161,21 @@ INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
     (1, 13, 0), /* Vitamin B5 */
     (1, 14, 0.6), /* Vitamin B6 */
     (1, 15, 0), /* Vitamin B7 */
-    (1, 15, 0), /* Vitamin B9 */
-    (1, 15, 0.34), /* Vitamin B12 */
-    (1, 15, 0), /* Vitamin C */
-    (1, 15, 0.1), /* Vitamin D */
-    (1, 15, 0.27), /* Vitamin E */
-    (1, 15, 0.3), /* Vitamin K */
-    (1, 15, 85), /* Cholesterol */
-    (1, 15, 15), /* Calcium */
-    (1, 15, 29), /* Magnesium */
-    (1, 15, 256), /* Potassium */
-    (1, 15, 228), /* Phosphorus */
-    (1, 15, 74), /* Sodium */
-    (1, 15, 1.04), /* Iron */
-    (1, 15, 1), /* Zinc */
-    (1, 15, 0.0653); /* Water */
+    (1, 16, 0), /* Vitamin B9 */
+    (1, 17, 0.34), /* Vitamin B12 */
+    (1, 18, 0), /* Vitamin C */
+    (1, 19, 0.1), /* Vitamin D */
+    (1, 20, 0.27), /* Vitamin E */
+    (1, 21, 0.3), /* Vitamin K */
+    (1, 22, 85), /* Cholesterol */
+    (1, 23, 15), /* Calcium */
+    (1, 24, 29), /* Magnesium */
+    (1, 25, 256), /* Potassium */
+    (1, 26, 228), /* Phosphorus */
+    (1, 27, 74), /* Sodium */
+    (1, 28, 1.04), /* Iron */
+    (1, 29, 1), /* Zinc */
+    (1, 30, 0.0653); /* Water */
 
 /* TODO: Add data for Skimmed Milk */
 
