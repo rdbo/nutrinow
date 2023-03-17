@@ -1,7 +1,3 @@
-/*
- * TODO: Return only error on bad requests
- */
-
 use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
@@ -312,8 +308,8 @@ async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
 
 // Food Request
 /*
-#[get("/food/<id>")]
-async fn api_food(id : i32, mut db : Connection<DbHandler>) -> Json {
+#[get("/nutrients/<serving_id>")]
+async fn api_food(food_id : i32, mut db : Connection<DbHandler>) -> Json {
     let query_food = async {
         sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
         .bind(id)
@@ -323,12 +319,18 @@ async fn api_food(id : i32, mut db : Connection<DbHandler>) -> Json {
 
     let food = match query_food.await {
         Ok(r) => r,
-        Err(_) => return Json("failed to get food")
+        Err(_) => return Json("failed to get food information")
     };
 
     Json("")
 }
 */
+
+// Diets Request
+#[post("/diets/<user_id>")]
+async fn api_diets(user_id : u32, mut db : Connection<DbHandler>) -> Json {
+    let
+}
 
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
