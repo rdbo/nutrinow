@@ -188,7 +188,7 @@ struct FoodInfo {
 #[get("/foods")]
 async fn api_foods(mut db : Connection<DbHandler>) -> Json {
     /*
-     * SELECT * FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats');
+     SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE nutrient.name IN ('Protein', 'Carbohydrates', 'Fats');
      */
 }
 
