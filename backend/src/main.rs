@@ -538,6 +538,64 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, mut db : Connection<DbHandle
     }
 }
 
+// Edit Diet Request
+#[derive(FromForm)]
+struct EditDietForm<'a> {
+    session_id : &'a str,
+    diet_id : i32,
+    diet_name : &'a str
+}
+
+#[derive(Serialize)]
+struct EditDietResponse {
+    err: &'static str
+}
+
+impl EditDietResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
+#[post("/edit_diet", data = "<data>")]
+async fn api_edit_diet(data : Form<EditDietForm<'_>>, mut db : Connection<DbHandler>) -> Json<EditDietResponse> {
+    let session_uuid = match Uuid::from_str(data.session_id) {
+        Ok(r) => r,
+        Err(_) => return Json(EditDietResponse::err("invalid session id"))
+    };
+
+    let query_user_id = async {
+        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
+            .bind(session_uuid)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let user_id = match query_user_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(EditDietResponse::err("failed to query user id"))
+    };
+    let user_id : i32 = user_id.try_get("user_id").unwrap();
+
+    let query_edit_diet = async {
+        sqlx::query("UPDATE diet SET name = $1 WHERE id = $2 AND user_id = $3")
+            .bind(data.diet_name)
+            .bind(data.diet_id)
+            .bind(user_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_edit_diet.await {
+        Ok(_) => Json(EditDietResponse::ok()),
+        Err(_) => Json(EditDietResponse::err("failed to edit diet"))
+    }
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -551,5 +609,5 @@ async fn rocket() -> _ {
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet])
 }

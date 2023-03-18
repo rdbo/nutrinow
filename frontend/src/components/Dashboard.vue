@@ -42,6 +42,23 @@ function createNewDiet(name) {
 
 function editCurDiet(name) {
     showEditDiet.value = false;
+    let editDietData = new FormData();
+    editDietData.append("session_id", props.session_id);
+    editDietData.append("diet_id", diets.value[curDietIndex.value].id);
+    editDietData.append("diet_name", name);
+    axios.post("/api/edit_diet", editDietData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        diets.value[curDietIndex.value].name = name;
+        updateCurDiet(curDietIndex.value); // refresh cookie
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
 }
 
 function deleteCurDiet() {
