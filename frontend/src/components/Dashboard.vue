@@ -9,13 +9,13 @@ import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 
 const props = defineProps(["session_id"]);
 
-const curDiet = ref({ id: null, name: "" });
+const curDietIndex = ref(0);
 const diets = ref([]);
 const showDeleteDiet = ref(false);
 
-function updateCurDiet(diet) {
-    curDiet.value = diet;
-    $cookies.set("curDiet", curDiet.value);
+function updateCurDiet(index) {
+    curDietIndex.value = index;
+    $cookies.set("curDiet", diets.value[curDietIndex.value]);
 }
 
 function deleteCurDiet() {
@@ -33,12 +33,14 @@ axios.get("/api/diets/" + props.session_id)
     diets.value = response.data.diets;
 
     let curDietCookie = $cookies.get("curDiet");
-    if (curDietCookie && diets.value.some((el) => { return JSON.stringify(curDietCookie) === JSON.stringify(el); })) {
-        curDiet.value = curDietCookie;
-    } else {
-        curDiet.value = diets.value[0];
-        $cookies.set("curDiet", curDiet.value);
+    if (curDietCookie) {
+        for (let i = 0; i < diets.value.length; ++i) {
+            if (curDietCookie.id == diets.value[i].id)
+                curDietIndex.value = i;
+        }
     }
+
+    $cookies.set("curDiet", diets.value[curDietIndex.value]);
 });
 
 const breakfest = [
@@ -116,8 +118,8 @@ const nutrients = [
         <h1 class="text-2xl">Dashboard</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" @delete-cur-diet="showDeleteDiet = true" :curDiet="curDiet" :diets="diets"/>
-                <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="curDiet"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
+                <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
                 <Meal name="Breakfest" :foods="breakfest" class="my-8"/>
