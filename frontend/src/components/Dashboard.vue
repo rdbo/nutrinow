@@ -98,7 +98,7 @@ function updateDiets(useLast = false) {
             newCurDietIndex = diets.value.length - 1;
         } else if (curDietCookie) {
             for (let i = 0; i < diets.value.length; ++i) {
-                if (curDietCookie === diets.value[i].id)
+                if (curDietCookie == diets.value[i].id)
                     newCurDietIndex = i;
             }
         }
