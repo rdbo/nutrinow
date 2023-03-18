@@ -1,9 +1,9 @@
 <script setup>
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { ChevronDownIcon } from '@heroicons/vue/20/solid'
+import { ChevronDownIcon, PlusCircleIcon, XCircleIcon } from '@heroicons/vue/20/solid'
 
 const props = defineProps(["curDiet", "diets"]);
-const emit = defineEmits(["update-cur-diet"]);
+const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet"]);
 </script>
 
 <template>
@@ -22,6 +22,18 @@ const emit = defineEmits(["update-cur-diet"]);
                 <div class="py-1">
                     <MenuItem v-for="diet in diets" v-slot="{ active }">
                         <div @click="$emit('update-cur-diet', diet)" class="cursor-pointer" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">{{ diet.name }}</div>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                       <div @click="$emit('new-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
+                           <PlusCircleIcon class="w-6 mr-1"/>
+                           <p>New Diet</p>
+                       </div>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                        <div @click="$emit('delete-cur-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
+                           <XCircleIcon class="w-6 mr-1"/>
+                           <p>Delete Diet</p>
+                       </div>
                     </MenuItem>
                 </div>
             </MenuItems>
