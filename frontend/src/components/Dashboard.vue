@@ -22,7 +22,20 @@ function updateCurDiet(index) {
 
 function createNewDiet(name) {
     showNewDiet.value = false;
-    console.log("new diet: " + name);
+    let newDietData = new FormData();
+    newDietData.append("session_id", props.session_id);
+    newDietData.append("diet_name", name);
+    axios.post("/api/new_diet", newDietData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+        updateDiets();
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
 }
 
 function deleteCurDiet() {
@@ -46,25 +59,32 @@ function deleteCurDiet() {
     });
 }
 
-axios.get("/api/diets/" + props.session_id)
-.then(function (response) {
-    if (response.data.err) {
-        // TODO: Handle error
-        return;
-    }
-
-    diets.value = response.data.diets;
-
-    let curDietCookie = $cookies.get("curDiet");
-    if (curDietCookie) {
-        for (let i = 0; i < diets.value.length; ++i) {
-            if (curDietCookie.id == diets.value[i].id)
-                curDietIndex.value = i;
+function updateDiets() {
+    axios.get("/api/diets/" + props.session_id)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
         }
-    }
 
-    $cookies.set("curDiet", diets.value[curDietIndex.value]);
-});
+        diets.value = response.data.diets;
+
+        let curDietCookie = $cookies.get("curDiet");
+        if (curDietCookie) {
+            for (let i = 0; i < diets.value.length; ++i) {
+                if (curDietCookie.id == diets.value[i].id)
+                    curDietIndex.value = i;
+            }
+        }
+
+        $cookies.set("curDiet", diets.value[curDietIndex.value]);
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
+}
+
+updateDiets();
 
 const breakfest = [
     {
