@@ -19,7 +19,7 @@ const showEditDiet = ref(false);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
-    $cookies.set("curDiet", diets.value[curDietIndex.value]);
+    localStorage.setItem("curDiet", diets.value[curDietIndex.value].id);
 }
 
 function createNewDiet(name) {
@@ -92,13 +92,13 @@ function updateDiets(useLast = false) {
 
         diets.value = response.data.diets;
 
-        let curDietCookie = $cookies.get("curDiet");
+        let curDietCookie = localStorage.getItem("curDiet");
         let newCurDietIndex = 0;
         if (useLast) {
             newCurDietIndex = diets.value.length - 1;
         } else if (curDietCookie) {
             for (let i = 0; i < diets.value.length; ++i) {
-                if (curDietCookie.id == diets.value[i].id)
+                if (curDietCookie === diets.value[i].id)
                     newCurDietIndex = i;
             }
         }
