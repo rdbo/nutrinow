@@ -7,6 +7,7 @@ import MealFood from "./MealFood.vue";
 import NutritionTable from "./NutritionTable.vue";
 import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 import ModalNewDiet from "./ModalNewDiet.vue";
+import ModalEditDiet from "./ModalEditDiet.vue";
 
 const props = defineProps(["session_id"]);
 
@@ -14,6 +15,7 @@ const curDietIndex = ref(0);
 const diets = ref([]);
 const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
+const showEditDiet = ref(false);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
@@ -36,6 +38,10 @@ function createNewDiet(name) {
     .catch(function (err) {
         // TODO: Handle error
     });
+}
+
+function editCurDiet(name) {
+    showEditDiet.value = false;
 }
 
 function deleteCurDiet() {
@@ -164,8 +170,9 @@ const nutrients = [
         <h1 class="text-2xl">Dashboard</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
                 <ModalNewDiet @cancel-new="showNewDiet = false" @new-diet="createNewDiet" v-if="showNewDiet"/>
+                <ModalEditDiet @cancel-edit="showEditDiet = false" @edit-diet="editCurDiet" v-if="showEditDiet" :diet="diets[curDietIndex]"/>
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
