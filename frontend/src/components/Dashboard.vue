@@ -13,6 +13,7 @@ const diets = ref([]);
 
 function updateCurDiet(diet) {
     curDiet.value = diet;
+    $cookies.set("curDiet", curDiet.value);
 }
 
 axios.get("/api/diets/" + props.session_id)
@@ -23,7 +24,14 @@ axios.get("/api/diets/" + props.session_id)
     }
 
     diets.value = response.data.diets;
-    curDiet.value = diets.value[0];
+
+    let curDietCookie = $cookies.get("curDiet");
+    if (curDietCookie && diets.value.some((el) => { return JSON.stringify(curDietCookie) === JSON.stringify(el); })) {
+        curDiet.value = curDietCookie;
+    } else {
+        curDiet.value = diets.value[0];
+        $cookies.set("curDiet", curDiet.value);
+    }
 });
 
 const breakfest = [
