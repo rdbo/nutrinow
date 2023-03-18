@@ -1,3 +1,7 @@
+/*
+ * TODO: Add helper function for querying user ID from session ID
+ */
+
 use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
@@ -330,7 +334,6 @@ async fn api_food(food_id : i32, mut db : Connection<DbHandler>) -> Json {
 */
 
 // Diets Request
-
 #[derive(Serialize)]
 struct DietInfo {
     id : i32,
@@ -394,6 +397,91 @@ async fn api_diets(session_id : String, mut db : Connection<DbHandler>) -> Json<
     Json(DietsResponse::ok(diet_list))
 }
 
+// Delete Diet Request
+#[derive(FromForm)]
+struct DeleteDietForm<'a> {
+    session_id : &'a str,
+    diet_id : i32
+}
+
+#[derive(Serialize)]
+struct DeleteDietResponse {
+    err : &'static str
+}
+
+impl DeleteDietResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
+#[post("/delete_diet", data = "<data>")]
+async fn api_delete_diet(data : Form<DeleteDietForm<'_>>, mut db : Connection<DbHandler>) -> Json<DeleteDietResponse> {
+    let session_uuid = match Uuid::from_str(data.session_id) {
+        Ok(r) => r,
+        Err(_) => return Json(DeleteDietResponse::err("invalid session id"))
+    };
+
+    let query_user_id = async {
+        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
+            .bind(session_uuid)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let user_id = match query_user_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(DeleteDietResponse::err("failed to query user id"))
+    };
+    let user_id : i32 = user_id.try_get("user_id").unwrap();
+
+    let query_diet_owner_id = async {
+        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
+            .bind(data.diet_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let diet_owner_id = match query_diet_owner_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(DeleteDietResponse::err("failed to query diet owner id"))
+    };
+    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
+
+    if user_id != diet_owner_id {
+        return Json(DeleteDietResponse::err("user does not own diet"));
+    }
+
+    let delete_diet = async {
+        match sqlx::query("DELETE FROM diet_meal WHERE diet_id = $1")
+            .bind(data.diet_id)
+            .execute(&mut *db)
+            .await {
+            Ok(_) => { },
+            Err(_) => return Err(())
+        };
+
+        match sqlx::query("DELETE FROM diet WHERE id = $1")
+            .bind(data.diet_id)
+            .execute(&mut *db)
+            .await {
+            Ok(_) => { },
+            Err(_) => return Err(())
+        };
+
+        Ok(())
+    };
+
+    match delete_diet.await {
+        Ok(_) => Json(DeleteDietResponse::ok()),
+        Err(_) => Json(DeleteDietResponse::err("failed to delete diet"))
+    }
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -407,5 +495,5 @@ async fn rocket() -> _ {
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet])
 }

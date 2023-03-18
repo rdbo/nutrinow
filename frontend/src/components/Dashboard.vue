@@ -19,8 +19,24 @@ function updateCurDiet(index) {
 }
 
 function deleteCurDiet() {
-    console.log("delete cur diet");
     showDeleteDiet.value = false;
+    let deleteDietData = new FormData();
+    deleteDietData.append("session_id", props.session_id);
+    deleteDietData.append("diet_id", diets.value[curDietIndex.value].id);
+    axios.post("/api/delete_diet", deleteDietData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        let oldIndex = curDietIndex.value;
+        curDietIndex.value = 0;
+        diets.value.splice(oldIndex, 1);
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
 }
 
 axios.get("/api/diets/" + props.session_id)

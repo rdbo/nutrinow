@@ -10,7 +10,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet"]);
     <Menu as="div" class="relative inline-block text-left w-full md:w-auto">
         <div>
             <MenuButton class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-2 ring-inset ring-gray-300 hover:bg-gray-50 md:w-56">
-                <p>{{ diets[curDietIndex].name }}</p>
+                <p v-if="diets.length > 0">{{ diets[curDietIndex].name }}</p>
                 <div class="flex items-center">
                     <ChevronDownIcon class="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
@@ -29,7 +29,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet"]);
                            <p>New Diet</p>
                        </div>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem v-if="diets.length > 0" v-slot="{ active }">
                         <div @click="$emit('delete-cur-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
                            <XCircleIcon class="w-6 mr-1"/>
                            <p>Delete Diet</p>
