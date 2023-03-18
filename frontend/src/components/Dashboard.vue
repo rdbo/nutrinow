@@ -1,19 +1,26 @@
 <script setup>
+import { ref } from "vue";
+import axios from "axios";
 import DietDropdown from "./DietDropdown.vue";
 import Meal from "./Meal.vue";
 import MealFood from "./MealFood.vue";
 import NutritionTable from "./NutritionTable.vue";
-import { ref } from "vue";
-import axios from "axios";
+import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 
 const props = defineProps(["session_id"]);
 
 const curDiet = ref({ id: null, name: "" });
 const diets = ref([]);
+const showDeleteDiet = ref(false);
 
 function updateCurDiet(diet) {
     curDiet.value = diet;
     $cookies.set("curDiet", curDiet.value);
+}
+
+function deleteCurDiet() {
+    console.log("delete cur diet");
+    showDeleteDiet.value = false;
 }
 
 axios.get("/api/diets/" + props.session_id)
@@ -109,7 +116,8 @@ const nutrients = [
         <h1 class="text-2xl">Dashboard</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" :curDiet="curDiet" :diets="diets"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @delete-cur-diet="showDeleteDiet = true" :curDiet="curDiet" :diets="diets"/>
+                <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="curDiet"/>
             </div>
             <div>
                 <Meal name="Breakfest" :foods="breakfest" class="my-8"/>
