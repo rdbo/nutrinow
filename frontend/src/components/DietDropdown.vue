@@ -24,7 +24,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edi
                         <div @click="$emit('update-cur-diet', index)" class="cursor-pointer" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">{{ diet.name }}</div>
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
-                       <div @click="$emit('new-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
+                       <div @click="$emit('new-diet')" class="cursor-pointer flex items-center border-t-2 border-gray-300" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
                            <PlusCircleIcon class="w-6 mr-1"/>
                            <p>New Diet</p>
                        </div>
