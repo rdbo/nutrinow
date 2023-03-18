@@ -6,16 +6,23 @@ import Meal from "./Meal.vue";
 import MealFood from "./MealFood.vue";
 import NutritionTable from "./NutritionTable.vue";
 import ModalDeleteDiet from "./ModalDeleteDiet.vue";
+import ModalNewDiet from "./ModalNewDiet.vue";
 
 const props = defineProps(["session_id"]);
 
 const curDietIndex = ref(0);
 const diets = ref([]);
 const showDeleteDiet = ref(false);
+const showNewDiet = ref(false);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
     $cookies.set("curDiet", diets.value[curDietIndex.value]);
+}
+
+function createNewDiet(name) {
+    showNewDiet.value = false;
+    console.log("new diet: " + name);
 }
 
 function deleteCurDiet() {
@@ -134,7 +141,8 @@ const nutrients = [
         <h1 class="text-2xl">Dashboard</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
+                <ModalNewDiet @cancel-new="showNewDiet = false" @new-diet="createNewDiet" v-if="showNewDiet"/>
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>

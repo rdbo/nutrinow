@@ -1,9 +1,9 @@
 <script setup>
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { ChevronDownIcon, PlusCircleIcon, XCircleIcon } from '@heroicons/vue/20/solid'
+import { ChevronDownIcon, PlusCircleIcon, XCircleIcon, PencilSquareIcon } from '@heroicons/vue/20/solid'
 
 const props = defineProps(["curDietIndex", "diets"]);
-const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet"]);
+const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edit-cur-diet"]);
 </script>
 
 <template>
@@ -27,6 +27,12 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet"]);
                        <div @click="$emit('new-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
                            <PlusCircleIcon class="w-6 mr-1"/>
                            <p>New Diet</p>
+                       </div>
+                    </MenuItem>
+                    <MenuItem v-if="diets.length > 0" v-slot="{ active }">
+                        <div @click="$emit('edit-cur-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
+                           <PencilSquareIcon class="w-6 mr-1"/>
+                           <p>Edit Diet</p>
                        </div>
                     </MenuItem>
                     <MenuItem v-if="diets.length > 0" v-slot="{ active }">
