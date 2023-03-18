@@ -31,7 +31,7 @@ function createNewDiet(name) {
             // TODO: Handle error
             return;
         }
-        updateDiets();
+        updateDiets(true);
     })
     .catch(function (err) {
         // TODO: Handle error
@@ -59,7 +59,7 @@ function deleteCurDiet() {
     });
 }
 
-function updateDiets() {
+function updateDiets(useLast = false) {
     axios.get("/api/diets/" + props.session_id)
     .then(function (response) {
         if (response.data.err) {
@@ -70,14 +70,17 @@ function updateDiets() {
         diets.value = response.data.diets;
 
         let curDietCookie = $cookies.get("curDiet");
-        if (curDietCookie) {
+        let newCurDietIndex = 0;
+        if (useLast) {
+            newCurDietIndex = diets.value.length - 1;
+        } else if (curDietCookie) {
             for (let i = 0; i < diets.value.length; ++i) {
                 if (curDietCookie.id == diets.value[i].id)
-                    curDietIndex.value = i;
+                    newCurDietIndex = i;
             }
         }
 
-        $cookies.set("curDiet", diets.value[curDietIndex.value]);
+        updateCurDiet(newCurDietIndex);
     })
     .catch(function (err) {
         // TODO: Handle error
