@@ -3,6 +3,28 @@ import DietDropdown from "./DietDropdown.vue";
 import Meal from "./Meal.vue";
 import MealFood from "./MealFood.vue";
 import NutritionTable from "./NutritionTable.vue";
+import { ref } from "vue";
+import axios from "axios";
+
+const props = defineProps(["session_id"]);
+
+const curDiet = ref({ id: null, name: "" });
+const diets = ref([]);
+
+function updateCurDiet(diet) {
+    curDiet.value = diet;
+}
+
+axios.get("/api/diets/" + props.session_id)
+.then(function (response) {
+    if (response.data.err) {
+        // TODO: Handle error
+        return;
+    }
+
+    diets.value = response.data.diets;
+    curDiet.value = diets.value[0];
+});
 
 const breakfest = [
     {
@@ -79,7 +101,7 @@ const nutrients = [
         <h1 class="text-2xl">Dashboard</h1>
         <div>
             <div class="my-4">
-                <DietDropdown/>
+                <DietDropdown @update-cur-diet="updateCurDiet" :curDiet="curDiet" :diets="diets"/>
             </div>
             <div>
                 <Meal name="Breakfest" :foods="breakfest" class="my-8"/>

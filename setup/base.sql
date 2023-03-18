@@ -225,7 +225,9 @@ INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES
     (2, 1, 100);
 
 INSERT INTO diet(name, user_id) VALUES
-    ('Diet 1', 1);
+    ('Diet 1', 1),
+    ('Cutting', 1),
+    ('Bulking', 1);
 
 INSERT INTO diet_meal VALUES
     (1, 1),

@@ -188,6 +188,7 @@ struct ServingNutrient {
 struct FoodInfo {
     id: i32,
     name : String,
+    serving_id : i32,
     serving_amount : f64,
     serving_unit : String,
     calories : ServingNutrient,
@@ -231,7 +232,7 @@ async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
         let serving_id : i32 = food.try_get("serving_id").unwrap();
 
         let query_serving = async {
-            sqlx::query("SELECT amount, unit FROM serving WHERE serving.id = $1")
+            sqlx::query("SELECT id, amount, unit FROM serving WHERE serving.id = $1")
             .bind(serving_id)
             .fetch_one(&mut *db)
             .await
@@ -241,6 +242,7 @@ async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
             Ok(r) => r,
             Err(_) => continue
         };
+        let serving_id : i32 = serving.try_get("id").unwrap();
         let serving_amount : f64 = serving.try_get("amount").unwrap();
         let serving_unit : String = serving.try_get("unit").unwrap();
 
@@ -294,6 +296,7 @@ async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
         let food_item = FoodInfo {
             id : food_id,
             name,
+            serving_id,
             serving_amount,
             serving_unit,
             calories,
@@ -327,9 +330,68 @@ async fn api_food(food_id : i32, mut db : Connection<DbHandler>) -> Json {
 */
 
 // Diets Request
-#[post("/diets/<user_id>")]
-async fn api_diets(user_id : u32, mut db : Connection<DbHandler>) -> Json {
-    let
+
+#[derive(Serialize)]
+struct DietInfo {
+    id : i32,
+    name : String
+}
+
+#[derive(Serialize)]
+struct DietsResponse {
+    diets : Vec<DietInfo>,
+    err: &'static str
+}
+
+impl DietsResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { diets: vec![], err: msg }
+    }
+
+    fn ok(diet_list : Vec<DietInfo>) -> Self {
+        Self { diets: diet_list, err: "" }
+    }
+}
+
+#[get("/diets/<session_id>")]
+async fn api_diets(session_id : String, mut db : Connection<DbHandler>) -> Json<DietsResponse> {
+    let session_uuid = match Uuid::from_str(&session_id) {
+        Ok(r) => r,
+        Err(_) => return Json(DietsResponse::err("invalid session id"))
+    };
+
+    let query_user_id = async {
+        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
+            .bind(session_uuid)
+            .fetch_one(&mut *db)
+            .await
+    };
+    let user_id = match query_user_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(DietsResponse::err("failed to query user id"))
+    };
+    let user_id : i32 = user_id.try_get("user_id").unwrap();
+
+    let query_diets = async {
+        sqlx::query("SELECT id, name FROM diet WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let diets = match query_diets.await {
+        Ok(r) => r,
+        Err(_) => return Json(DietsResponse::err("failed to query diets"))
+    };
+
+    let mut diet_list : Vec<DietInfo> = vec![];
+    for diet in diets {
+        let diet_id : i32 = diet.try_get("id").unwrap();
+        let diet_name : String = diet.try_get("name").unwrap();
+        diet_list.push(DietInfo { id: diet_id, name: diet_name });
+    }
+
+    Json(DietsResponse::ok(diet_list))
 }
 
 // Handle Vue routes that are not static files
@@ -345,5 +407,5 @@ async fn rocket() -> _ {
         .attach(DbHandler::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets])
 }

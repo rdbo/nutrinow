@@ -8,7 +8,7 @@ const props = defineProps(["session_id"]);
 
 <template>
     <div v-if="session_id">
-        <Dashboard/>
+        <Dashboard :session_id="session_id"/>
     </div>
     <div v-else>
         <Welcome/>
