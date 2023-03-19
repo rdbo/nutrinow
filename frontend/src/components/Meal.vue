@@ -14,7 +14,7 @@ const props = defineProps(["name", "foods"]);
         </button>
     </div>
     <div>
-        <MealFood v-for="food in foods" :name="food.name" :amount="food.amount" :cals="food.cals" :carbs="food.carbs" :prots="food.prots" :fats="food.fats"/>
+        <MealFood v-for="food in foods" :food="food"/>
     </div>
     <div class="flex justify-center items-center">
         <button id="btn_add_food" class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>

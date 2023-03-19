@@ -64,22 +64,6 @@ CREATE TABLE serving_nutrient (
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
 );
 
-CREATE TABLE meal (
-    id SERIAL,
-    name VARCHAR(100) NOT NULL,
-    user_id SERIAL,
-    PRIMARY KEY(id),
-    FOREIGN KEY (user_id) REFERENCES user_account(id)
-);
-
-CREATE TABLE meal_serving (
-    meal_id SERIAL,
-    serving_id SERIAL,
-    amount FLOAT NOT NULL,
-    FOREIGN KEY (meal_id) REFERENCES meal(id),
-    FOREIGN KEY (serving_id) REFERENCES serving(id)
-);
-
 CREATE TABLE diet (
     id SERIAL,
     name VARCHAR(100) NOT NULL,
@@ -88,11 +72,20 @@ CREATE TABLE diet (
     FOREIGN KEY (user_id) REFERENCES user_account(id)
 );
 
-CREATE TABLE diet_meal (
+CREATE TABLE meal (
+    id SERIAL,
     diet_id SERIAL,
+    name VARCHAR(100) NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY (diet_id) REFERENCES diet(id)
+);
+
+CREATE TABLE meal_serving (
     meal_id SERIAL,
-    FOREIGN KEY (diet_id) REFERENCES diet(id),
-    FOREIGN KEY (meal_id) REFERENCES meal(id)
+    serving_id SERIAL,
+    amount FLOAT NOT NULL,
+    FOREIGN KEY (meal_id) REFERENCES meal(id),
+    FOREIGN KEY (serving_id) REFERENCES serving(id)
 );
 
 INSERT INTO user_account(name, email, gender, birthdate, password_hash) VALUES
@@ -216,7 +209,12 @@ INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
 
 /* TODO: Add data for Skimmed Milk */
 
-INSERT INTO meal(name, user_id) VALUES
+INSERT INTO diet(name, user_id) VALUES
+    ('Diet 1', 1),
+    ('Cutting', 1),
+    ('Bulking', 1);
+
+INSERT INTO meal(name, diet_id) VALUES
     ('Breakfest', 1),
     ('Lunch', 1);
 
@@ -224,11 +222,3 @@ INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES
     (1, 1, 50),
     (2, 1, 100);
 
-INSERT INTO diet(name, user_id) VALUES
-    ('Diet 1', 1),
-    ('Cutting', 1),
-    ('Bulking', 1);
-
-INSERT INTO diet_meal VALUES
-    (1, 1),
-    (1, 2);

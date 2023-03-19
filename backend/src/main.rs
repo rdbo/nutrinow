@@ -211,7 +211,7 @@ impl FoodList {
 
 #[get("/foods")]
 async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
-    let query_foods =  async {
+    let query_foods = async {
         sqlx::query("SELECT food.id AS food_id, food.name AS name, MIN(serving.id) AS serving_id FROM food JOIN serving ON serving.food_id = food.id GROUP BY food.id ORDER BY food.id")
             .fetch_all(&mut *db)
             .await
@@ -516,12 +516,6 @@ async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, 
 }
 
 // Meals Request
-/*
-#[derive(FromForm)]
-struct MealsForm {
-    diet_id : i32
-}
-
 #[derive(Serialize)]
 struct MealInfo {
     id : i32,
@@ -547,36 +541,70 @@ impl MealsResponse {
 
 #[get("/meals/<diet_id>")]
 async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<MealsResponse> {
-    let session_id = match cookies.get("session_id") {
-        Some(id) => id,
-        None => return Json(EditDietResponse::err("user not logged in"))
-    };
-
-    let session_uuid = match Uuid::from_str(session_id.value()) {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(EditDietResponse::err("invalid session id"));
-        }
+        Err(s) => return Json(MealsResponse::err(s))
     };
 
-    let query_user_id = async {
-        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
-            .bind(session_uuid)
-            .fetch_one(&mut *db)
+    let query_meals = async {
+        sqlx::query("SELECT meal.id AS id, meal.name AS name FROM meal JOIN diet ON diet.id = meal.diet_id WHERE diet.id = $1 AND diet.user_id = $2")
+            .bind(diet_id)
+            .bind(user_id)
+            .fetch_all(&mut *db)
             .await
     };
 
-    let user_id = match query_user_id.await {
+    let meals = match query_meals.await {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(EditDietResponse::err("failed to query user id"));
-        }
+        Err(_) => return Json(MealsResponse::err("Failed to query meals from diet"))
     };
-    let user_id : i32 = user_id.try_get("user_id").unwrap();
+
+    let mut meals_info : Vec<MealInfo> = vec![];
+    for meal in meals {
+        let meal_id : i32 = meal.try_get("id").unwrap();
+        let meal_name : String = meal.try_get("name").unwrap();
+
+        let query_foods = async {
+            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, meal_serving.amount AS amount, serving.unit AS unit FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
+                .bind(meal_id)
+                .fetch_all(&mut *db)
+                .await
+        };
+
+        let foods = match query_foods.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+
+        let mut foods_info : Vec<FoodInfo> = vec![];
+        for food in foods {
+            let food_id : i32 = food.try_get("id").unwrap();
+            let food_name : String = food.try_get("name").unwrap();
+            let serving_id : i32 = food.try_get("serving_id").unwrap();
+            let serving_amount : f64 = food.try_get("amount").unwrap();
+            let serving_unit : String = food.try_get("unit").unwrap();
+
+            let food = FoodInfo {
+                id: food_id,
+                name: food_name,
+                serving_id,
+                serving_amount,
+                serving_unit,
+                nutrients : vec![]
+            };
+            foods_info.push(food);
+        }
+
+        let meal = MealInfo {
+            id: meal_id,
+            name: meal_name,
+            foods: foods_info
+        };
+        meals_info.push(meal);
+    }
+ 
+    Json(MealsResponse::ok(meals_info))
 }
-*/
 
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
@@ -591,5 +619,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals])
 }

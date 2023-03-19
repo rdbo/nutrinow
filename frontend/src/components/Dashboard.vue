@@ -14,10 +14,28 @@ const diets = ref([]);
 const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
 const showEditDiet = ref(false);
+const meals = ref([]);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
     localStorage.setItem("curDiet", diets.value[curDietIndex.value].id);
+
+    // load diet meals
+    axios.get("/api/meals/" + diets.value[curDietIndex.value].id)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            meals.value = [];
+            return;
+        }
+
+        meals.value = response.data.meals;
+        console.log(meals.value);
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+        meals.value = [];
+    });
 }
 
 function createNewDiet(name) {
@@ -107,60 +125,6 @@ function updateDiets(useLast = false) {
 
 updateDiets();
 
-const breakfest = [
-    {
-        "name": "Milk",
-        "amount": "200ml",
-        "cals": "250",
-        "carbs": "12",
-        "prots": "32",
-        "fats": "18"
-    },
-    {
-        "name": "Coffee",
-        "amount": "30g",
-        "cals": "100",
-        "carbs": "5",
-        "prots": "5",
-        "fats": "0"
-    },
-    {
-        "name": "Bread",
-        "amount": "30g",
-        "cals": "200",
-        "carbs": "20",
-        "prots": "2",
-        "fats": "1"
-    }
-];
-
-const lunch = [
-    {
-        "name": "Chicken Breast",
-        "amount": "100g",
-        "cals": "400",
-        "carbs": "12",
-        "prots": "32",
-        "fats": "18"
-    },
-    {
-        "name": "White Rice",
-        "amount": "100g",
-        "cals": "500",
-        "carbs": "50",
-        "prots": "12",
-        "fats": "8"
-    },
-    {
-        "name": "Beans",
-        "amount": "100g",
-        "cals": "200",
-        "carbs": "20",
-        "prots": "10",
-        "fats": "8"
-    }
-];
-
 const nutrients = [
     {
         "name": "Vitamin A",
@@ -188,8 +152,7 @@ const nutrients = [
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
-                <Meal name="Breakfest" :foods="breakfest" class="my-8"/>
-                <Meal name="Lunch" :foods="lunch"/>
+                <Meal v-for="meal in meals" :name="meal.name" :foods="meal.foods" class="mt-8"/>
                 <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
             </div>
             <NutritionTable :nutrients="nutrients"/>
