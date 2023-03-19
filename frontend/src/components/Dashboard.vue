@@ -83,7 +83,7 @@ function deleteCurDiet() {
 }
 
 function updateDiets(useLast = false) {
-    axios.get("/api/diets/" + props.session_id)
+    axios.get("/api/diets")
     .then(function (response) {
         if (response.data.err) {
             // TODO: Handle error

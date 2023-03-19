@@ -6,7 +6,8 @@ use rocket::{
     *,
     fs::{FileServer, relative, NamedFile},
     form::Form,
-    serde::{Serialize, json::Json}
+    serde::{Serialize, json::Json},
+    http::{CookieJar}
 };
 
 use chrono::Datelike;
@@ -356,9 +357,14 @@ impl DietsResponse {
     }
 }
 
-#[get("/diets/<session_id>")]
-async fn api_diets(session_id : String, mut db : Connection<DbHandler>) -> Json<DietsResponse> {
-    let session_uuid = match Uuid::from_str(&session_id) {
+#[get("/diets")]
+async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<DietsResponse> {
+    let session_id = match cookies.get("session_id") {
+        Some(id) => id,
+        None => return Json(DietsResponse::err("user not logged in"))
+    };
+
+    let session_uuid = match Uuid::from_str(session_id.value()) {
         Ok(r) => r,
         Err(_) => return Json(DietsResponse::err("invalid session id"))
     };
