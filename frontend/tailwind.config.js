@@ -8,10 +8,10 @@ module.exports = {
     extend: {
       dropShadow: {
         "bold-sm": [
-            "-1px -1px 0 #404040",
-            "1px -1px 0 #404040",
-            "-1px 1px 0 #404040",
-            "1px 1px 0 #404040"
+            "-1px -1px 0 #606060",
+            "1px -1px 0 #606060",
+            "-1px 1px 0 #606060",
+            "1px 1px 0 #606060"
         ]
       },
         colors: {
