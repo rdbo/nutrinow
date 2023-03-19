@@ -157,14 +157,14 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) ->
 }
 
 // Logout POST
-#[derive(FromForm)]
-struct LogoutData<'a> {
-    session_id : &'a str
-}
+#[post("/logout")]
+async fn api_logout(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) {
+    let session_uuid = match cookies.get("session_id") {
+        Some(id) => id,
+        None => return
+    };
 
-#[post("/logout", data = "<data>")]
-async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandle>) {
-    let session_id = match Uuid::from_str(data.session_id) {
+    let session_id = match Uuid::from_str(session_uuid.value()) {
         Ok(r) => r,
         _ => return
     };
