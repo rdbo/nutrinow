@@ -190,7 +190,6 @@ struct FoodInfo {
     serving_id : i32,
     serving_amount : f64,
     serving_unit : String,
-    calories : ServingNutrient,
     nutrients : Vec<ServingNutrient>
 }
 
@@ -245,24 +244,8 @@ async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
         let serving_amount : f64 = serving.try_get("amount").unwrap();
         let serving_unit : String = serving.try_get("unit").unwrap();
 
-        let query_calories = async {
-            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1 AND name = 'Calories'")
-            .bind(serving_id)
-            .fetch_one(&mut *db)
-            .await
-        };
-
-        let calories = match query_calories.await {
-            Ok(r) => r,
-            Err(_) => continue
-        };
-
-        let calories_name : String = calories.try_get("name").unwrap();
-        let calories_amount : f64 = calories.try_get("amount").unwrap();
-        let calories_unit : String = calories.try_get("unit").unwrap();
-
         let query_nutrients = async {
-            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1 AND name IN ('Carbohydrates', 'Protein', 'Fats')")
+            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
             .bind(serving_id)
             .fetch_all(&mut *db)
             .await
@@ -286,19 +269,12 @@ async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
             nutrient_list.push(nutrient_item);
         }
 
-        let calories = ServingNutrient {
-            name : calories_name,
-            amount : calories_amount,
-            unit : calories_unit
-        };
-
         let food_item = FoodInfo {
             id : food_id,
             name,
             serving_id,
             serving_amount,
             serving_unit,
-            calories,
             nutrients : nutrient_list
         };
 

@@ -57,3 +57,4 @@ pub async fn user_id_from_cookies(cookies : &CookieJar<'_>, db : &mut PoolConnec
 
     Ok(user_id)
 }
+
