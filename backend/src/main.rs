@@ -159,12 +159,8 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) ->
 async fn api_logout(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) {
     let session_id = match session_id_from_cookies(cookies) {
         Ok(id) => id,
-        Err(s) => {
-            println!("{}", s);
-            return;
-        }
+        Err(_) => return
     };
-    println!("{}", session_id);
 
     sqlx::query("DELETE FROM user_session WHERE id = $1")
         .bind(session_id)
