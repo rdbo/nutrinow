@@ -9,33 +9,32 @@ use rocket::{
     fs::{FileServer, relative, NamedFile},
     form::Form,
     serde::{Serialize, json::Json},
-    http::{CookieJar, Cookie}
+    http::{CookieJar}
 };
 
 use chrono::Datelike;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::sqlx::{
-    self, Row,
-    types::chrono::{NaiveDate, Utc},
-    types::uuid::Uuid
+use rocket_db_pools::{
+    Database, Connection,
+    sqlx::{
+        self, Row,
+        types::chrono::{NaiveDate, Utc},
+        types::uuid::Uuid
+    }
 };
-
-use sha2::{Sha256, Digest};
 
 use std::path::PathBuf;
 
 use std::str::FromStr;
 
-fn sha256str(string : &str) -> String {
-    let mut hash = Sha256::new();
-    hash.update(string);
-    format!("{:x}", hash.finalize())
-}
+mod helpers;
+
+use helpers::{user_id_from_cookies, sha256str};
+
 
 #[derive(Database)]
 #[database("nutrinow")]
-struct DbHandler(sqlx::PgPool);
+pub struct DbHandle(sqlx::PgPool);
 
 // Register POST
 #[derive(FromForm)]
@@ -68,7 +67,7 @@ impl RegisterResponse {
  *   Validate user input
  */
 #[post("/register", data = "<data>")]
-async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandler>) -> Json<RegisterResponse> {
+async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandle>) -> Json<RegisterResponse> {
     let birthdate = match NaiveDate::parse_from_str(data.birthdate, "%Y-%m-%d") {
         Ok(r) => r,
         _ => return Json(RegisterResponse::err("invalid birthdate format"))
@@ -116,7 +115,7 @@ impl LoginResponse {
 }
 
 #[post("/login", data = "<data>")]
-async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandler>) -> Json<LoginResponse> {
+async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) -> Json<LoginResponse> {
     let get_account_details = async {
         sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
             .bind(data.email)
@@ -164,7 +163,7 @@ struct LogoutData<'a> {
 }
 
 #[post("/logout", data = "<data>")]
-async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandler>) {
+async fn api_logout(data : Form<LogoutData<'_>>, mut db : Connection<DbHandle>) {
     let session_id = match Uuid::from_str(data.session_id) {
         Ok(r) => r,
         _ => return
@@ -219,7 +218,7 @@ impl FoodList {
 }
 
 #[get("/foods")]
-async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
+async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
     let query_foods =  async {
         sqlx::query("SELECT food.id AS food_id, food.name AS name, MIN(serving.id) AS serving_id FROM food JOIN serving ON serving.food_id = food.id GROUP BY food.id ORDER BY food.id")
             .fetch_all(&mut *db)
@@ -319,7 +318,7 @@ async fn api_foods(mut db : Connection<DbHandler>) -> Json<FoodList> {
 // Food Request
 /*
 #[get("/nutrients/<serving_id>")]
-async fn api_food(food_id : i32, mut db : Connection<DbHandler>) -> Json {
+async fn api_food(food_id : i32, mut db : Connection<DbHandle>) -> Json {
     let query_food = async {
         sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
         .bind(id)
@@ -360,34 +359,11 @@ impl DietsResponse {
 }
 
 #[get("/diets")]
-async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<DietsResponse> {
-    let session_id = match cookies.get("session_id") {
-        Some(id) => id,
-        None => return Json(DietsResponse::err("user not logged in"))
-    };
-
-    let session_uuid = match Uuid::from_str(session_id.value()) {
+async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DietsResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(DietsResponse::err("invalid session id"));
-        }
+        Err(s) => return Json(DietsResponse::err(s))
     };
-
-    let query_user_id = async {
-        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
-            .bind(session_uuid)
-            .fetch_one(&mut *db)
-            .await
-    };
-    let user_id = match query_user_id.await {
-        Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(DietsResponse::err("failed to query user id"))
-        }
-    };
-    let user_id : i32 = user_id.try_get("user_id").unwrap();
 
     let query_diets = async {
         sqlx::query("SELECT id, name FROM diet WHERE user_id = $1")
@@ -433,35 +409,11 @@ impl DeleteDietResponse {
 }
 
 #[post("/delete_diet", data = "<data>")]
-async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<DeleteDietResponse> {
-    let session_id = match cookies.get("session_id") {
-        Some(id) => id,
-        None => return Json(DeleteDietResponse::err("user not logged in"))
-    };
-
-    let session_uuid = match Uuid::from_str(session_id.value()) {
+async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DeleteDietResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(DeleteDietResponse::err("invalid session id"));
-        }
+        Err(s) => return Json(DeleteDietResponse::err(s))
     };
-
-    let query_user_id = async {
-        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
-            .bind(session_uuid)
-            .fetch_one(&mut *db)
-            .await
-    };
-
-    let user_id = match query_user_id.await {
-        Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(DeleteDietResponse::err("failed to query user id"));
-        }
-    };
-    let user_id : i32 = user_id.try_get("user_id").unwrap();
 
     let query_diet_owner_id = async {
         sqlx::query("SELECT user_id FROM diet WHERE id = $1")
@@ -528,35 +480,13 @@ impl NewDietResponse {
 }
 
 #[post("/new_diet", data = "<data>")]
-async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<NewDietResponse> {
-    let session_id = match cookies.get("session_id") {
-        Some(id) => id,
-        None => return Json(NewDietResponse::err("user not logged in"))
-    };
-
-    let session_uuid = match Uuid::from_str(session_id.value()) {
+async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<NewDietResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(NewDietResponse::err("invalid session id"));
+        Err(s) => {
+            return Json(NewDietResponse::err(s));
         }
     };
-
-    let query_user_id = async {
-        sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
-            .bind(session_uuid)
-            .fetch_one(&mut *db)
-            .await
-    };
-
-    let user_id = match query_user_id.await {
-        Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Json(NewDietResponse::err("failed to query user id"));
-        }
-    };
-    let user_id : i32 = user_id.try_get("user_id").unwrap();
 
     let query_new_diet = async {
         sqlx::query("INSERT INTO diet(name, user_id) VALUES ($1, $2)")
@@ -595,7 +525,59 @@ impl EditDietResponse {
 }
 
 #[post("/edit_diet", data = "<data>")]
-async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<EditDietResponse> {
+async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<EditDietResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(r) => r,
+        Err(s) => return Json(EditDietResponse::err(s))
+    };
+
+    let query_edit_diet = async {
+        sqlx::query("UPDATE diet SET name = $1 WHERE id = $2 AND user_id = $3")
+            .bind(data.diet_name)
+            .bind(data.diet_id)
+            .bind(user_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_edit_diet.await {
+        Ok(_) => Json(EditDietResponse::ok()),
+        Err(_) => Json(EditDietResponse::err("failed to edit diet"))
+    }
+}
+
+// Meals Request
+/*
+#[derive(FromForm)]
+struct MealsForm {
+    diet_id : i32
+}
+
+#[derive(Serialize)]
+struct MealInfo {
+    id : i32,
+    name : String,
+    foods : Vec<FoodInfo>
+}
+
+#[derive(Serialize)]
+struct MealsResponse {
+    meals : Vec<MealInfo>,
+    err : &'static str
+}
+
+impl MealsResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { meals: vec![], err: msg }
+    }
+
+    fn ok(meals_info : Vec<MealInfo>) -> Self {
+        Self { meals: meals_info, err: "" }
+    }
+}
+
+#[get("/meals/<diet_id>")]
+async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<MealsResponse> {
     let session_id = match cookies.get("session_id") {
         Some(id) => id,
         None => return Json(EditDietResponse::err("user not logged in"))
@@ -624,21 +606,8 @@ async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, 
         }
     };
     let user_id : i32 = user_id.try_get("user_id").unwrap();
-
-    let query_edit_diet = async {
-        sqlx::query("UPDATE diet SET name = $1 WHERE id = $2 AND user_id = $3")
-            .bind(data.diet_name)
-            .bind(data.diet_id)
-            .bind(user_id)
-            .execute(&mut *db)
-            .await
-    };
-
-    match query_edit_diet.await {
-        Ok(_) => Json(EditDietResponse::ok()),
-        Err(_) => Json(EditDietResponse::err("failed to edit diet"))
-    }
 }
+*/
 
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
@@ -650,7 +619,7 @@ async fn vue_routes() -> Option<NamedFile> {
 #[launch]
 async fn rocket() -> _ {
     rocket::build()
-        .attach(DbHandler::init())
+        .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
         .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet])
