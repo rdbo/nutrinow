@@ -7,7 +7,7 @@ use rocket::{
     fs::{FileServer, relative, NamedFile},
     form::Form,
     serde::{Serialize, json::Json},
-    http::{CookieJar}
+    http::{CookieJar, Cookie}
 };
 
 use chrono::Datelike;
@@ -366,7 +366,10 @@ async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> 
 
     let session_uuid = match Uuid::from_str(session_id.value()) {
         Ok(r) => r,
-        Err(_) => return Json(DietsResponse::err("invalid session id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(DietsResponse::err("invalid session id"));
+        }
     };
 
     let query_user_id = async {
@@ -377,7 +380,10 @@ async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> 
     };
     let user_id = match query_user_id.await {
         Ok(r) => r,
-        Err(_) => return Json(DietsResponse::err("failed to query user id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(DietsResponse::err("failed to query user id"))
+        }
     };
     let user_id : i32 = user_id.try_get("user_id").unwrap();
 

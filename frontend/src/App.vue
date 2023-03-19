@@ -24,6 +24,11 @@ function updateSession() {
 }
 
 updateSession();
+
+// Periodically update session cookie
+setInterval(() => {
+    updateSession();
+}, 100);
 </script>
 
 <template>
