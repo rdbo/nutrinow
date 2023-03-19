@@ -123,21 +123,6 @@ function updateDiets(useLast = false) {
 }
 
 updateDiets();
-
-const nutrients = [
-    {
-        "name": "Vitamin A",
-        "intake": "100",
-        "desired": "120",
-        "unit": "μg"
-    },
-    {
-        "name": "Vitamin D",
-        "intake": "120",
-        "desired": "120",
-        "unit": "μg"
-    }
-]
 </script>
 
 <template>
@@ -154,7 +139,7 @@ const nutrients = [
                 <Meal v-for="meal in meals" :name="meal.name" :foods="meal.foods" class="mt-8"/>
                 <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
             </div>
-            <NutritionTable :nutrients="nutrients"/>
+            <NutritionTable :meals="meals"/>
         </div>
     </div>
 </template>
