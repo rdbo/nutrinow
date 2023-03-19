@@ -30,7 +30,6 @@ function updateCurDiet(index) {
         }
 
         meals.value = response.data.meals;
-        console.log(meals.value);
     })
     .catch(function (err) {
         // TODO: Handle error
