@@ -411,8 +411,7 @@ async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> 
 
 // Delete Diet Request
 #[derive(FromForm)]
-struct DeleteDietForm<'a> {
-    session_id : &'a str,
+struct DeleteDietForm {
     diet_id : i32
 }
 
@@ -432,10 +431,18 @@ impl DeleteDietResponse {
 }
 
 #[post("/delete_diet", data = "<data>")]
-async fn api_delete_diet(data : Form<DeleteDietForm<'_>>, mut db : Connection<DbHandler>) -> Json<DeleteDietResponse> {
-    let session_uuid = match Uuid::from_str(data.session_id) {
+async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<DeleteDietResponse> {
+    let session_id = match cookies.get("session_id") {
+        Some(id) => id,
+        None => return Json(DeleteDietResponse::err("user not logged in"))
+    };
+
+    let session_uuid = match Uuid::from_str(session_id.value()) {
         Ok(r) => r,
-        Err(_) => return Json(DeleteDietResponse::err("invalid session id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(DeleteDietResponse::err("invalid session id"));
+        }
     };
 
     let query_user_id = async {
@@ -447,7 +454,10 @@ async fn api_delete_diet(data : Form<DeleteDietForm<'_>>, mut db : Connection<Db
 
     let user_id = match query_user_id.await {
         Ok(r) => r,
-        Err(_) => return Json(DeleteDietResponse::err("failed to query user id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(DeleteDietResponse::err("failed to query user id"));
+        }
     };
     let user_id : i32 = user_id.try_get("user_id").unwrap();
 

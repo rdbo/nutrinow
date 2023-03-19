@@ -64,7 +64,6 @@ function editCurDiet(name) {
 function deleteCurDiet() {
     showDeleteDiet.value = false;
     let deleteDietData = new FormData();
-    deleteDietData.append("session_id", props.session_id);
     deleteDietData.append("diet_id", diets.value[curDietIndex.value].id);
     axios.post("/api/delete_diet", deleteDietData)
     .then(function (response) {
