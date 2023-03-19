@@ -25,11 +25,9 @@ use rocket_db_pools::{
 
 use std::path::PathBuf;
 
-use std::str::FromStr;
-
 mod helpers;
 
-use helpers::{user_id_from_cookies, sha256str};
+use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str};
 
 
 #[derive(Database)]
@@ -159,15 +157,14 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) ->
 // Logout POST
 #[post("/logout")]
 async fn api_logout(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) {
-    let session_uuid = match cookies.get("session_id") {
-        Some(id) => id,
-        None => return
+    let session_id = match session_id_from_cookies(cookies) {
+        Ok(id) => id,
+        Err(s) => {
+            println!("{}", s);
+            return;
+        }
     };
-
-    let session_id = match Uuid::from_str(session_uuid.value()) {
-        Ok(r) => r,
-        _ => return
-    };
+    println!("{}", session_id);
 
     sqlx::query("DELETE FROM user_session WHERE id = $1")
         .bind(session_id)

@@ -6,15 +6,17 @@ import axios from "axios";
 const session_id = ref(null);
 
 function logout() {
+    let delete_session = () => {
+        // remove session from client side
+        $cookies.remove("session_id");
+        session_id.value = null;
+    }
+
     // tell the server to delete the session
     axios.post("/api/logout")
-    .catch(function (err) {
-        console.log("/api/logout request error: " + err);
-    });
+    .then(delete_session)
+    .catch(delete_session);
 
-    // remove session from client side
-    $cookies.remove("session_id");
-    session_id.value = null;
 }
 
 function updateSession() {

@@ -20,23 +20,29 @@ pub fn sha256str(string : &str) -> String {
     format!("{:x}", hash.finalize())
 }
 
-pub async fn user_id_from_cookies(cookies : &CookieJar<'_>, db : &mut PoolConnection<Postgres>) -> Result<i32, &'static str> {
-    let session_id = match cookies.get("session_id") {
+pub fn session_id_from_cookies(cookies : &CookieJar<'_>) -> Result<Uuid, &'static str> {
+    let session_uuid = match cookies.get("session_id") {
         Some(id) => id,
-        None => return Err("User not logged in")
+        None => return Err("Missing 'session_id' cookie")
     };
 
-    let session_uuid = match Uuid::from_str(session_id.value()) {
+    let session_id = match Uuid::from_str(session_uuid.value()) {
         Ok(r) => r,
-        Err(_) => {
-            cookies.remove(Cookie::named("session_id"));
-            return Err("Invalid session ID");
-        }
+        _ => return Err("The session ID is invalid")
+    };
+
+    Ok(session_id)
+}
+
+pub async fn user_id_from_cookies(cookies : &CookieJar<'_>, db : &mut PoolConnection<Postgres>) -> Result<i32, &'static str> {
+    let session_id = match session_id_from_cookies(cookies) {
+        Ok(id) => id,
+        Err(s) => return Err(s)
     };
 
     let query_user_id = async {
         sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
-            .bind(session_uuid)
+            .bind(session_id)
             .fetch_one(db)
             .await
     };
