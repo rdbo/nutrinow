@@ -9,8 +9,6 @@ import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 import ModalNewDiet from "./ModalNewDiet.vue";
 import ModalEditDiet from "./ModalEditDiet.vue";
 
-const props = defineProps(["session_id"]);
-
 const curDietIndex = ref(0);
 const diets = ref([]);
 const showDeleteDiet = ref(false);
@@ -25,7 +23,6 @@ function updateCurDiet(index) {
 function createNewDiet(name) {
     showNewDiet.value = false;
     let newDietData = new FormData();
-    newDietData.append("session_id", props.session_id);
     newDietData.append("diet_name", name);
     axios.post("/api/new_diet", newDietData)
     .then(function (response) {
@@ -43,7 +40,6 @@ function createNewDiet(name) {
 function editCurDiet(name) {
     showEditDiet.value = false;
     let editDietData = new FormData();
-    editDietData.append("session_id", props.session_id);
     editDietData.append("diet_id", diets.value[curDietIndex.value].id);
     editDietData.append("diet_name", name);
     axios.post("/api/edit_diet", editDietData)

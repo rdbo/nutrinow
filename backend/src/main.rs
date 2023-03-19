@@ -1,5 +1,7 @@
 /*
- * TODO: Add helper function for querying user ID from session ID
+ * TODO:
+     Add helper function for querying user ID from session ID
+     Add helper function for getting session ID from cookie jar
  */
 
 use rocket::{
@@ -507,7 +509,6 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
 // New Diet Request
 #[derive(FromForm)]
 struct NewDietForm<'a> {
-    session_id: &'a str,
     diet_name: &'a str
 }
 
@@ -527,10 +528,18 @@ impl NewDietResponse {
 }
 
 #[post("/new_diet", data = "<data>")]
-async fn api_new_diet(data : Form<NewDietForm<'_>>, mut db : Connection<DbHandler>) -> Json<NewDietResponse> {
-    let session_uuid = match Uuid::from_str(data.session_id) {
+async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<NewDietResponse> {
+    let session_id = match cookies.get("session_id") {
+        Some(id) => id,
+        None => return Json(NewDietResponse::err("user not logged in"))
+    };
+
+    let session_uuid = match Uuid::from_str(session_id.value()) {
         Ok(r) => r,
-        Err(_) => return Json(NewDietResponse::err("invalid session id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(NewDietResponse::err("invalid session id"));
+        }
     };
 
     let query_user_id = async {
@@ -542,7 +551,10 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, mut db : Connection<DbHandle
 
     let user_id = match query_user_id.await {
         Ok(r) => r,
-        Err(_) => return Json(NewDietResponse::err("failed to query user id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(NewDietResponse::err("failed to query user id"));
+        }
     };
     let user_id : i32 = user_id.try_get("user_id").unwrap();
 
@@ -563,7 +575,6 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, mut db : Connection<DbHandle
 // Edit Diet Request
 #[derive(FromForm)]
 struct EditDietForm<'a> {
-    session_id : &'a str,
     diet_id : i32,
     diet_name : &'a str
 }
@@ -584,10 +595,18 @@ impl EditDietResponse {
 }
 
 #[post("/edit_diet", data = "<data>")]
-async fn api_edit_diet(data : Form<EditDietForm<'_>>, mut db : Connection<DbHandler>) -> Json<EditDietResponse> {
-    let session_uuid = match Uuid::from_str(data.session_id) {
+async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandler>) -> Json<EditDietResponse> {
+    let session_id = match cookies.get("session_id") {
+        Some(id) => id,
+        None => return Json(EditDietResponse::err("user not logged in"))
+    };
+
+    let session_uuid = match Uuid::from_str(session_id.value()) {
         Ok(r) => r,
-        Err(_) => return Json(EditDietResponse::err("invalid session id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(EditDietResponse::err("invalid session id"));
+        }
     };
 
     let query_user_id = async {
@@ -599,7 +618,10 @@ async fn api_edit_diet(data : Form<EditDietForm<'_>>, mut db : Connection<DbHand
 
     let user_id = match query_user_id.await {
         Ok(r) => r,
-        Err(_) => return Json(EditDietResponse::err("failed to query user id"))
+        Err(_) => {
+            cookies.remove(Cookie::named("session_id"));
+            return Json(EditDietResponse::err("failed to query user id"));
+        }
     };
     let user_id : i32 = user_id.try_get("user_id").unwrap();
 
