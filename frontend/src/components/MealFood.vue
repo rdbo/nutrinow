@@ -3,6 +3,7 @@ import { TrashIcon } from "@heroicons/vue/20/solid";
 import { PencilSquareIcon } from "@heroicons/vue/20/solid";
 
 const props = defineProps(["food"]);
+const displayNutrients = ["Protein", "Carbohydrates", "Fats", "Calories"];
 </script>
 
 <template>
@@ -26,16 +27,15 @@ const props = defineProps(["food"]);
     <div class="text-gray-500 flex">
         <div class="mx-2 my-2 flex">
             <div class="mx-4 text-right">
-                <p>Calories:</p>
-                <p>Carbohydrates:</p>
-                <p>Proteins:</p>
-                <p>Fats:</p>
+                <div v-for="nutrient in food.base_nutrients">
+                    <p v-if="displayNutrients.includes(nutrient.name)">{{ nutrient.name }}</p>
+                </div>
             </div>
             <div>
-                <p>{{ cals }}kcal</p>
-                <p>{{ carbs }}g</p>
-                <p>{{ prots }}g</p>
-                <p>{{ fats }}g</p>
+                <div v-for="nutrient in food.base_nutrients">
+                    <!-- proportionally calculate nutrient amount from base serving values -->
+                    <p v-if="displayNutrients.includes(nutrient.name)">{{ ((nutrient.amount / food.serving_base) * food.serving_amount).toFixed(1) }}{{ nutrient.unit }}</p>
+                </div>
             </div>
         </div>
         <button class="bg-red-300 text-red-500 px-4 py-2 flex items-center justify-center border-l-2 border-gray-700 py-4 px-4 hover:bg-red-400 hover:text-gray-700">

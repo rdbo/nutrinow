@@ -188,9 +188,10 @@ struct FoodInfo {
     id: i32,
     name : String,
     serving_id : i32,
+    serving_base : f64,
     serving_amount : f64,
     serving_unit : String,
-    nutrients : Vec<ServingNutrient>
+    base_nutrients : Vec<ServingNutrient>
 }
 
 #[derive(Serialize)]
@@ -242,6 +243,7 @@ async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
         };
         let serving_id : i32 = serving.try_get("id").unwrap();
         let serving_amount : f64 = serving.try_get("amount").unwrap();
+        let serving_base = serving_amount;
         let serving_unit : String = serving.try_get("unit").unwrap();
 
         let query_nutrients = async {
@@ -273,9 +275,10 @@ async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
             id : food_id,
             name,
             serving_id,
+            serving_base,
             serving_amount,
             serving_unit,
-            nutrients : nutrient_list
+            base_nutrients : nutrient_list
         };
 
         food_list.foods.push(food_item);
@@ -565,7 +568,7 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
         let meal_name : String = meal.try_get("name").unwrap();
 
         let query_foods = async {
-            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, meal_serving.amount AS amount, serving.unit AS unit FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
+            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
                 .bind(meal_id)
                 .fetch_all(&mut *db)
                 .await
@@ -581,16 +584,44 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
             let food_id : i32 = food.try_get("id").unwrap();
             let food_name : String = food.try_get("name").unwrap();
             let serving_id : i32 = food.try_get("serving_id").unwrap();
+            let serving_base : f64 = food.try_get("serving_base").unwrap();
             let serving_amount : f64 = food.try_get("amount").unwrap();
             let serving_unit : String = food.try_get("unit").unwrap();
+
+            let query_nutrients = async {
+                sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
+                    .bind(serving_id)
+                    .fetch_all(&mut *db)
+                    .await
+            };
+
+            let nutrients = match query_nutrients.await {
+                Ok(r) => r,
+                Err(_) => continue
+            };
+
+            let mut base_nutrients : Vec<ServingNutrient> = vec![];
+            for nutrient in nutrients {
+                let nutrient_name : String = nutrient.try_get("name").unwrap();
+                let nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
+                let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+
+                let nutrient_info = ServingNutrient {
+                    name: nutrient_name,
+                    amount: nutrient_amount,
+                    unit: nutrient_unit
+                };
+                base_nutrients.push(nutrient_info);
+            }
 
             let food = FoodInfo {
                 id: food_id,
                 name: food_name,
                 serving_id,
+                serving_base,
                 serving_amount,
                 serving_unit,
-                nutrients : vec![]
+                base_nutrients
             };
             foods_info.push(food);
         }
