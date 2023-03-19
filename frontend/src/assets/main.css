@@ -11,3 +11,9 @@
 body {
     font-family: "Itim";
 }
+
+/* fix for 'downloadable font: rejected by sanitizer' */
+input[type="password"] {
+    font-family: "Verdana", sans-serif;
+    font-size: 16px;
+}
