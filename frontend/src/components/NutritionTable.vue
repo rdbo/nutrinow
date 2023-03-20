@@ -32,8 +32,6 @@ const nutrients = computed(() => {
         });
     }
 
-    console.log(nutrient_arr);
-
     return nutrient_arr;
 });
 </script>
