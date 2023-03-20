@@ -10,6 +10,7 @@ CREATE TABLE user_account (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(254) UNIQUE NOT NULL,
     gender CHAR(1) NOT NULL,
+    weight FLOAT NOT NULL /* in kilograms */,
     birthdate DATE NOT NULL,
     password_hash CHAR(64) NOT NULL,
     PRIMARY KEY(id)
@@ -26,6 +27,7 @@ CREATE TABLE user_nutrition (
     user_id SERIAL,
     nutrient_id SERIAL,
     daily_intake FLOAT NOT NULL,
+    relative BOOLEAN NOT NULL, /* relative to body weight */
     FOREIGN KEY (user_id) REFERENCES user_account(id),
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
 );
@@ -88,8 +90,8 @@ CREATE TABLE meal_serving (
     FOREIGN KEY (serving_id) REFERENCES serving(id)
 );
 
-INSERT INTO user_account(name, email, gender, birthdate, password_hash) VALUES
-    ('Admin', 'admin@localhost', 'M', '1970-01-01', 'f1884986dc7b68fb7ac18c5a7dd2bea6467565300378713fca1fe468bc4be6a6'); /* Password: nutrinow_admin */
+INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES
+    ('Admin', 'admin@localhost', 'M', '70', '1970-01-01', 'f1884986dc7b68fb7ac18c5a7dd2bea6467565300378713fca1fe468bc4be6a6'); /* Password: nutrinow_admin */
 
 INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */

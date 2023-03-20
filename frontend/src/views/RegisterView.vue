@@ -6,7 +6,6 @@ import axios from "axios";
 const router = useRouter();
 
 const creatingAccount = ref(false);
-const password = ref(null);
 const confirmPassword = ref(null)
 const errors = ref([]);
 const nameForm = ref(null);
@@ -14,11 +13,12 @@ const birthdateForm = ref(null);
 const emailForm = ref(null);
 const passwordForm = ref(null);
 const genderForm = ref(null);
+const weightForm = ref(null);
 
 function checkForm() {
     errors.value = [];
 
-    if (password.value != confirmPassword.value) {
+    if (passwordForm.value != confirmPassword.value) {
         errors.value.push("Passwords don't match");
     }
 
@@ -33,11 +33,12 @@ function registerHandler(e) {
     }
 
     let registerData = new FormData();
-    registerData.append("name", nameForm.value.value);
-    registerData.append("birthdate", birthdateForm.value.value);
-    registerData.append("email", emailForm.value.value);
-    registerData.append("password", passwordForm.value.value);
-    registerData.append("gender", genderForm.value.value);
+    registerData.append("name", nameForm.value);
+    registerData.append("birthdate", birthdateForm.value);
+    registerData.append("email", emailForm.value);
+    registerData.append("password", passwordForm.value);
+    registerData.append("gender", genderForm.value);
+    registerData.append("weight", weightForm.value);
 
     axios.post("/api/register", registerData)
     .then(function (response) {
@@ -62,19 +63,19 @@ function registerHandler(e) {
         <form @submit="registerHandler" action="/api/register" method="POST" class="flex flex-col">
             <div>
                 <label>Name:</label>
-                <input ref="nameForm" name="name" type="text" required/>
+                <input v-model="nameForm" name="name" type="text" required/>
             </div>
             <div>
                 <label>Birthdate:</label>
-                <input ref="birthdateForm" name="birthdate" type="date" min="1900-01-01" :max="(new Date()).toISOString().split('T')[0]" required/>
+                <input v-model="birthdateForm" name="birthdate" type="date" min="1900-01-01" :max="(new Date()).toISOString().split('T')[0]" required/>
             </div>
             <div>
                 <label>E-Mail:</label>
-                <input ref="emailForm" name="email" type="email" required/>
+                <input v-model="emailForm" name="email" type="email" required/>
             </div>
             <div>
                 <label>Password:</label>
-                <input ref="passwordForm" name="password" type="password" v-model="password" required/>
+                <input v-model="passwordForm" name="password" type="password" required/>
             </div>
             <div>
                 <label>Confirm Password:</label>
@@ -83,12 +84,19 @@ function registerHandler(e) {
             <div>
                 <label>Gender:</label>
                 <div class="gender">
-                    <input ref="genderForm" name="gender" type="radio" value="M" required>
+                    <input v-model="genderForm" name="gender" type="radio" value="M" required>
                     <label>Male</label>
                 </div>
                 <div class="gender">
-                    <input ref="genderForm" name="gender" type="radio" value="F" required>
+                    <input v-model="genderForm" name="gender" type="radio" value="F" required>
                     <label>Female</label>
+                </div>
+            </div>
+            <div>
+                <label>Weight</label>
+                <div class="flex">
+                    <input v-model="weightForm" name="weight" type="number" class="w-20" min="1" step="1" required/>
+                    <label class="mx-2">kg</label>
                 </div>
             </div>
             <div v-if="errors.length">

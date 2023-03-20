@@ -41,7 +41,8 @@ struct RegisterData<'a> {
     birthdate: &'a str,
     email: &'a str,
     password: &'a str,
-    gender: &'a str
+    gender: &'a str,
+    weight: f64
 }
 
 #[derive(Serialize)]
@@ -73,13 +74,14 @@ async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandl
     let password_hash = sha256str(data.password);
     let create_account = async {
         sqlx::query(
-            "INSERT INTO user_account(name, birthdate, email, password_hash, gender) VALUES ($1, $2, $3, $4, $5)"
+            "INSERT INTO user_account(name, birthdate, email, password_hash, gender, weight) VALUES ($1, $2, $3, $4, $5, $6)"
             )
             .bind(data.name)
             .bind(birthdate)
             .bind(data.email)
             .bind(password_hash)
             .bind(data.gender)
+            .bind(data.weight)
             .execute(&mut *db)
             .await
     };
