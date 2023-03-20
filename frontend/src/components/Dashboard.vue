@@ -15,6 +15,7 @@ const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
 const showEditDiet = ref(false);
 const meals = ref([]);
+const userInfo = ref(null);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
@@ -122,12 +123,28 @@ function updateDiets(useLast = false) {
     });
 }
 
+function updateUserInfo() {
+    axios.get("/api/user")
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        userInfo.value = response.data;
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
+}
+
 updateDiets();
+updateUserInfo();
 </script>
 
 <template>
-    <div class="mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto">
-        <h1 class="text-2xl">Dashboard</h1>
+    <div class="mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
+        <h1 class="text-2xl">Dashboard - {{ userInfo.name }}</h1>
         <div>
             <div class="my-4">
                 <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
@@ -139,7 +156,7 @@ updateDiets();
                 <Meal v-for="meal in meals" :name="meal.name" :foods="meal.foods" class="mt-8"/>
                 <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
             </div>
-            <NutritionTable :meals="meals"/>
+            <NutritionTable :meals="meals" :userInfo="userInfo"/>
         </div>
     </div>
 </template>

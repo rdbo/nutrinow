@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 
-const props = defineProps(["meals"]);
+const props = defineProps(["meals", "userInfo"]);
 const nutrients = computed(() => {
     // TODO: Consider ALL desired nutrients, not only the ones given by the foods (maybe the food has not registered a certain nutrient)
     let nutrient_map = { };
@@ -24,11 +24,26 @@ const nutrients = computed(() => {
 
     let nutrient_arr = [];
     for (const nutrient in nutrient_map) {
+        let desired_amount = 0;
+        let relative = false;
+        let nutrition = props.userInfo.desired_nutrition;
+        for (let i = 0; i < nutrition.length; ++i) {
+            if (nutrition[i].name == nutrient) {
+                relative = nutrition[i].relative;
+                desired_amount = nutrition[i].amount;
+
+                if (relative) {
+                    desired_amount *= props.userInfo.weight;
+                }
+                break;
+            }
+        }
         nutrient_arr.push({
             name: nutrient,
             amount: nutrient_map[nutrient].amount,
             unit: nutrient_map[nutrient].unit,
-            desired: 0 /* TODO: Fix */
+            desired: desired_amount,
+            relative: relative
         });
     }
 
@@ -49,7 +64,7 @@ const nutrients = computed(() => {
                 </tr>
             </thead>
             <tbody class="bg-green-200">
-                <tr v-for="nutrient in nutrients" class="border-gray-700" :class="{ 'border-b-2': nutrient != nutrients[nutrients.length - 1], 'bg-red-300': nutrient.intake < nutrient.desired }">
+                <tr v-for="nutrient in nutrients" class="border-gray-700" :class="{ 'border-b-2': nutrient != nutrients[nutrients.length - 1], 'bg-red-300': nutrient.amount < nutrient.desired }">
                     <td class="border-r-2 border-gray-700 font-bold">{{ nutrient.name }}</td>
                     <td class="border-r-2 border-gray-700">{{ nutrient.amount }}{{ nutrient.unit }}</td>
                     <td>{{ nutrient.desired }}{{ nutrient.unit }}</td>
