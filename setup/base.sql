@@ -97,9 +97,9 @@ INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */
     ('Protein', 'g'),
     ('Carbohydrates', 'g'), /* Total carbohydrates, including fiber and sugar */
+    ('Fats', 'g'), /* Total fat, including saturated, unsaturated, and trans fat */
     ('Sugar', 'g'),
     ('Fiber', 'g'),
-    ('Fats', 'g'), /* Total fat, including saturated, unsaturated, and trans fat */
     ('Saturated Fat', 'g'),
     ('Unsaturated Fat', 'g'),
     ('Trans Fat', 'g'),
@@ -131,6 +131,39 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Water', 'ml'),
     ('Calories', 'kcal');
 
+INSERT INTO user_nutrition(user_id, nutrient_id, daily_intake, relative) VALUES
+    (1, 1, 100, true),
+    (1, 2, 100, true),
+    (1, 3, 100, true),
+    (1, 4, 100, false),
+    (1, 5, 100, false),
+    (1, 6, 100, false),
+    (1, 7, 100, false),
+    (1, 8, 100, false),
+    (1, 9, 100, false),
+    (1, 10, 100, false),
+    (1, 11, 100, false),
+    (1, 12, 100, false),
+    (1, 13, 100, false),
+    (1, 14, 100, false),
+    (1, 15, 100, false),
+    (1, 16, 100, false),
+    (1, 17, 100, false),
+    (1, 18, 100, false),
+    (1, 19, 100, false),
+    (1, 20, 100, false),
+    (1, 21, 100, false),
+    (1, 22, 100, false),
+    (1, 23, 100, false),
+    (1, 24, 100, false),
+    (1, 25, 100, false),
+    (1, 26, 100, false),
+    (1, 27, 100, false),
+    (1, 28, 100, false),
+    (1, 29, 100, false),
+    (1, 30, 100, false),
+    (1, 31, 100, false);
+
 /* TODO: Import foods from USDA database */
 INSERT INTO food(name, user_id) VALUES
     ('Chicken Breast', 1),
@@ -144,9 +177,9 @@ INSERT INTO serving(food_id, amount, unit) VALUES
 INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
     (1, 1, 31), /* Protein */
     (1, 2, 0), /* Carbohydrates */
-    (1, 3, 0), /* Sugar */
-    (1, 4, 0), /* Fiber */
-    (1, 5, 3.57), /* Fats */
+    (1, 3, 3.57), /* Fats */
+    (1, 4, 0), /* Sugar */
+    (1, 5, 0), /* Fiber */
     (1, 6, 1.01), /* Saturated Fat */
     (1, 7, 2.01), /* Unsaturated Fat */
     (1, 8, 0), /* Trans Fat */

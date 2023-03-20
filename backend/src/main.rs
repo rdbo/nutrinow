@@ -639,6 +639,91 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
     Json(MealsResponse::ok(meals_info))
 }
 
+// User Information Request
+#[derive(Serialize)]
+struct UserNutrient {
+    name : String,
+    amount : f64,
+    unit : String,
+    relative : bool
+}
+
+#[derive(Serialize)]
+struct UserResponse {
+    name : String,
+    birthdate : String,
+    gender : String,
+    weight : f64,
+    desired_nutrition : Vec<UserNutrient>,
+    err : &'static str
+}
+
+impl UserResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { name: "".to_string(), birthdate: "".to_string(), gender: "".to_string(), weight: 0.0, desired_nutrition : vec![], err: msg }
+    }
+
+    fn ok(name : String, birthdate : String, gender : String, weight : f64, desired_nutrition : Vec<UserNutrient>) -> Self {
+        Self { name, birthdate, gender, weight, desired_nutrition, err: "" }
+    }
+}
+
+#[get("/user")]
+async fn api_user(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<UserResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(r) => r,
+        Err(s) => return Json(UserResponse::err(s))
+    };
+
+    let query_user_info = async {
+        sqlx::query("SELECT name, birthdate, gender, weight FROM user_account WHERE id = $1")
+            .bind(user_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let user_info = match query_user_info.await {
+        Ok(r) => r,
+        Err(_) => return Json(UserResponse::err("Failed to query user information"))
+    };
+
+    let user_name : String = user_info.try_get("name").unwrap();
+    let user_birthdate : NaiveDate = user_info.try_get("birthdate").unwrap();
+    let user_birthdate = user_birthdate.to_string();
+    let user_gender : String = user_info.try_get("gender").unwrap();
+    let user_weight : f64 = user_info.try_get("weight").unwrap();
+
+    let query_user_nutrition = async {
+        sqlx::query("SELECT name, daily_intake, unit, relative FROM user_nutrition JOIN nutrient ON nutrient.id = user_nutrition.nutrient_id WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let user_nutrition = match query_user_nutrition.await {
+        Ok(r) => r,
+        Err(_) => return Json(UserResponse::err("Failed to query user nutrition"))
+    };
+
+    let mut user_nutrients : Vec<UserNutrient> = vec![];
+    for nutrient in user_nutrition {
+        let nutrient_name : String = nutrient.try_get("name").unwrap();
+        let nutrient_intake : f64 = nutrient.try_get("daily_intake").unwrap();
+        let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+        let nutrient_relative : bool = nutrient.try_get("relative").unwrap();
+
+        let user_nutrient = UserNutrient {
+            name: nutrient_name,
+            amount: nutrient_intake,
+            unit: nutrient_unit,
+            relative: nutrient_relative
+        };
+        user_nutrients.push(user_nutrient);
+    }
+
+    Json(UserResponse::ok(user_name, user_birthdate, user_gender, user_weight, user_nutrients))
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -652,5 +737,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user])
 }
