@@ -20,6 +20,7 @@ const showAddMeal = ref(false);
 const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const meals = ref([]);
 const userInfo = ref(null);
+const nutrients = ref([]);
 
 function updateCurDiet(index) {
     curDietIndex.value = index;
@@ -187,6 +188,21 @@ function updateUserInfo() {
     });
 }
 
+function updateNutrients() {
+    axios.get("/api/nutrients")
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        nutrients.value = response.data.nutrients;
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
+}
+
 function getMealById(meal_id) {
     for (let i = 0; i < meals.value.length; ++i) {
         if (meals.value[i].id === meal_id)
@@ -196,6 +212,7 @@ function getMealById(meal_id) {
 
 updateDiets();
 updateUserInfo();
+updateNutrients();
 </script>
 
 <template>
@@ -214,7 +231,7 @@ updateUserInfo();
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
             </div>
-            <NutritionTable :meals="meals" :userInfo="userInfo"/>
+            <NutritionTable :meals="meals" :userInfo="userInfo" :nutrients="nutrients"/>
         </div>
     </div>
 </template>

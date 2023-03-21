@@ -849,6 +849,56 @@ async fn api_delete_meal(data : Form<DeleteMealForm>, cookies : &CookieJar<'_>, 
     }
 }
 
+// Nutrients Request
+#[derive(Serialize)]
+struct Nutrient {
+    id : i32,
+    name : String,
+    unit : String
+}
+
+#[derive(Serialize)]
+struct NutrientsResponse {
+    nutrients : Vec<Nutrient>,
+    err : &'static str
+}
+
+impl NutrientsResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { nutrients: vec![], err: msg }
+    }
+
+    fn ok(nutrient_list : Vec<Nutrient>) -> Self {
+        Self { nutrients: nutrient_list, err: "" }
+    }
+}
+
+#[get("/nutrients")]
+async fn api_nutrients(mut db : Connection<DbHandle>) -> Json<NutrientsResponse> {
+    let query_nutrients = async {
+        sqlx::query("SELECT id, name, unit FROM nutrient")
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let nutrients = match query_nutrients.await {
+        Ok(r) => r,
+        Err(_) => return Json(NutrientsResponse::err("Failed to query nutrients"))
+    };
+
+    let mut nutrient_list : Vec<Nutrient> = vec![];
+    for nutrient in nutrients {
+        let nutrient_id : i32 = nutrient.try_get("id").unwrap();
+        let nutrient_name : String = nutrient.try_get("name").unwrap();
+        let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+
+        let nutrient_item = Nutrient { id: nutrient_id, name: nutrient_name, unit: nutrient_unit };
+        nutrient_list.push(nutrient_item);
+    }
+
+    Json(NutrientsResponse::ok(nutrient_list))
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -862,5 +912,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients])
 }

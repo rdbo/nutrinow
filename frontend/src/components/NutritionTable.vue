@@ -1,49 +1,44 @@
 <script setup>
 import { computed } from "vue";
 
-const props = defineProps(["meals", "userInfo"]);
-const nutrients = computed(() => {
+const props = defineProps(["meals", "userInfo", "nutrients"]);
+const nutritionTable = computed(() => {
     // TODO: Consider ALL desired nutrients, not only the ones given by the foods (maybe the food has not registered a certain nutrient)
     let nutrient_map = { };
+    props.nutrients.forEach((nutrient) => {
+        nutrient_map[nutrient.name] = {
+            amount: 0,
+            desired: 0,
+            unit: nutrient.unit
+        };
+    });
+
+    props.userInfo.desired_nutrition.forEach((nutrient) => {
+        let desired_amount = nutrient.amount;
+        if (nutrient.relative) {
+            desired_amount *= props.userInfo.weight;
+        }
+        nutrient_map[nutrient.name].desired = desired_amount;
+    });
+
     props.meals.forEach((meal) => {
         meal.foods.forEach((food) => {
             food.base_nutrients.forEach((nutrient) => {
-                let nutrient_count = 0;
-                if (nutrient_map.hasOwnProperty(nutrient.name)) {
-                    nutrient_count = nutrient_map[nutrient.name].amount;
-                }
-
+                let nutrient_count = nutrient_map[nutrient.name].amount;
                 // proportionally calculate nutrient intake from base serving amount
-                nutrient_map[nutrient.name] = {
-                    amount: Number(Number(nutrient_count) + (nutrient.amount / food.serving_base) * food.serving_amount).toFixed(1),
-                    unit: nutrient.unit
-                };
+                nutrient_map[nutrient.name].amount = Number(Number(nutrient_count) + (nutrient.amount / food.serving_base) * food.serving_amount).toFixed(1);
             });
         });
     });
 
     let nutrient_arr = [];
     for (const nutrient in nutrient_map) {
-        let desired_amount = 0;
-        let relative = false;
-        let nutrition = props.userInfo.desired_nutrition;
-        for (let i = 0; i < nutrition.length; ++i) {
-            if (nutrition[i].name == nutrient) {
-                relative = nutrition[i].relative;
-                desired_amount = nutrition[i].amount;
-
-                if (relative) {
-                    desired_amount *= props.userInfo.weight;
-                }
-                break;
-            }
-        }
         nutrient_arr.push({
             name: nutrient,
             amount: nutrient_map[nutrient].amount,
             unit: nutrient_map[nutrient].unit,
-            desired: desired_amount,
-            relative: relative
+            desired: nutrient_map[nutrient].desired,
+            relative: nutrient_map[nutrient].relative
         });
     }
 
@@ -64,7 +59,7 @@ const nutrients = computed(() => {
                 </tr>
             </thead>
             <tbody class="bg-green-200">
-                <tr v-for="nutrient in nutrients" class="border-gray-700" :class="{ 'border-b-2': nutrient != nutrients[nutrients.length - 1], 'bg-red-300': nutrient.amount < nutrient.desired }">
+                <tr v-for="nutrient in nutritionTable" class="border-gray-700" :class="{ 'border-b-2': nutrient != nutritionTable[nutritionTable.length - 1], 'bg-red-300': nutrient.amount < nutrient.desired }">
                     <td class="border-r-2 border-gray-700 font-bold">{{ nutrient.name }}</td>
                     <td class="border-r-2 border-gray-700">{{ nutrient.amount }}{{ nutrient.unit }}</td>
                     <td>{{ nutrient.desired }}{{ nutrient.unit }}</td>
