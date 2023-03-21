@@ -790,6 +790,65 @@ async fn api_add_meal(data : Form<AddMealForm<'_>>, cookies : &CookieJar<'_>, mu
     Json(AddMealResponse::ok(MealInfo { id: meal_id, name: data.meal_name.to_string(), foods: vec![] }))
 }
 
+// Delete Meal Request
+#[derive(FromForm)]
+struct DeleteMealForm {
+    meal_id : i32
+}
+
+#[derive(Serialize)]
+struct DeleteMealResponse {
+    err: &'static str
+}
+
+impl DeleteMealResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
+#[post("/delete_meal", data = "<data>")]
+async fn api_delete_meal(data : Form<DeleteMealForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DeleteMealResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteMealResponse::err(s))
+    };
+
+    // TODO: Make querying diet owner a function
+    let query_diet_owner_id = async {
+        sqlx::query("SELECT user_id FROM meal JOIN diet ON diet.id = meal.diet_id WHERE meal.id = $1")
+            .bind(data.meal_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let diet_owner_id = match query_diet_owner_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(DeleteMealResponse::err("Failed to query diet owner id"))
+    };
+    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
+
+    if user_id != diet_owner_id {
+        return Json(DeleteMealResponse::err("User does not own diet"));
+    }
+
+    let query_delete_meal = async {
+        sqlx::query("DELETE FROM meal WHERE id = $1")
+            .bind(data.meal_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_delete_meal.await {
+        Ok(_) => Json(DeleteMealResponse::ok()),
+        Err(_) => Json(DeleteMealResponse::err("Failed to delete meal"))
+    }
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -803,5 +862,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal])
 }

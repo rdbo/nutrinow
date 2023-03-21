@@ -9,6 +9,7 @@ import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 import ModalNewDiet from "./ModalNewDiet.vue";
 import ModalEditDiet from "./ModalEditDiet.vue";
 import ModalAddMeal from "./ModalAddMeal.vue";
+import ModalDeleteMeal from "./ModalDeleteMeal.vue";
 
 const curDietIndex = ref(0);
 const diets = ref([]);
@@ -16,6 +17,7 @@ const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
 const showEditDiet = ref(false);
 const showAddMeal = ref(false);
+const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const meals = ref([]);
 const userInfo = ref(null);
 
@@ -117,6 +119,31 @@ function addMeal(mealName) {
     });
 }
 
+function deleteMeal() {
+    let mealId = deleteMealId.value;
+    deleteMealId.value = null;
+
+    let deleteMealData = new FormData();
+    deleteMealData.append("meal_id", mealId);
+    axios.post("/api/delete_meal", deleteMealData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        for (let i = 0; i < meals.value.length; ++i) {
+            if (meals.value[i].id == mealId) {
+                meals.value.splice(i, 1);
+                break;
+            }
+        }
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    })
+}
+
 function updateDiets(useLast = false) {
     axios.get("/api/diets")
     .then(function (response) {
@@ -160,6 +187,13 @@ function updateUserInfo() {
     });
 }
 
+function getMealById(meal_id) {
+    for (let i = 0; i < meals.value.length; ++i) {
+        if (meals.value[i].id === meal_id)
+            return meals.value[i];
+    }
+}
+
 updateDiets();
 updateUserInfo();
 </script>
@@ -175,9 +209,10 @@ updateUserInfo();
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
-                <Meal v-for="meal in meals" :name="meal.name" :foods="meal.foods" class="mt-8"/>
+                <Meal @delete-meal="(id) => deleteMealId = id" v-for="meal in meals" :meal="meal" class="mt-8"/>
                 <button id="btn_add_meal" @click="showAddMeal = true" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
+                <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
             </div>
             <NutritionTable :meals="meals" :userInfo="userInfo"/>
         </div>
