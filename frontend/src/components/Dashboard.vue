@@ -91,6 +91,7 @@ function deleteCurDiet() {
         let oldIndex = curDietIndex.value;
         curDietIndex.value = 0;
         diets.value.splice(oldIndex, 1);
+        updateCurDiet(curDietIndex.value);
     })
     .catch(function (err) {
         // TODO: Handle error
@@ -109,7 +110,7 @@ function addMeal(mealName) {
             return;
         }
 
-        updateDiets();
+        meals.value.push(response.data.meal);
     })
     .catch(function (err) {
         // TODO: Handle error

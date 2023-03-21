@@ -407,7 +407,7 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
     }
 
     let delete_diet = async {
-        match sqlx::query("DELETE FROM diet_meal WHERE diet_id = $1")
+        match sqlx::query("DELETE FROM meal WHERE diet_id = $1")
             .bind(data.diet_id)
             .execute(&mut *db)
             .await {
@@ -733,16 +733,17 @@ struct AddMealForm<'a> {
 
 #[derive(Serialize)]
 struct AddMealResponse {
+    meal : MealInfo,
     err : &'static str
 }
 
 impl AddMealResponse {
     fn err(msg : &'static str) -> Self {
-        Self { err: msg }
+        Self { meal: MealInfo { id: 0, name: "".to_string(), foods: vec![] }, err: msg }
     }
 
-    fn ok() -> Self {
-        Self { err: "" }
+    fn ok(meal_info : MealInfo) -> Self {
+        Self { meal: meal_info, err: "" }
     }
 }
 
@@ -772,17 +773,21 @@ async fn api_add_meal(data : Form<AddMealForm<'_>>, cookies : &CookieJar<'_>, mu
     }
 
     let query_add_meal = async {
-        sqlx::query("INSERT INTO meal(diet_id, name) VALUES ($1, $2)")
+        sqlx::query("INSERT INTO meal (diet_id, name) VALUES ($1, $2) RETURNING id")
             .bind(data.diet_id)
             .bind(data.meal_name)
-            .execute(&mut *db)
+            .fetch_one(&mut *db)
             .await
     };
 
-    match query_add_meal.await {
-        Ok(_) => Json(AddMealResponse::ok()),
-        Err(_) => Json(AddMealResponse::err("Failed to add meal to diet"))
-    }
+    let meal_row = match query_add_meal.await {
+        Ok(r) => r,
+        Err(_) => return Json(AddMealResponse::err("Failed to add meal to diet"))
+    };
+
+    let meal_id : i32 = meal_row.try_get("id").unwrap();
+
+    Json(AddMealResponse::ok(MealInfo { id: meal_id, name: data.meal_name.to_string(), foods: vec![] }))
 }
 
 // Handle Vue routes that are not static files
