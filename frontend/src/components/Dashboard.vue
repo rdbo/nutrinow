@@ -8,12 +8,14 @@ import NutritionTable from "./NutritionTable.vue";
 import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 import ModalNewDiet from "./ModalNewDiet.vue";
 import ModalEditDiet from "./ModalEditDiet.vue";
+import ModalAddMeal from "./ModalAddMeal.vue";
 
 const curDietIndex = ref(0);
 const diets = ref([]);
 const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
 const showEditDiet = ref(false);
+const showAddMeal = ref(false);
 const meals = ref([]);
 const userInfo = ref(null);
 
@@ -95,6 +97,25 @@ function deleteCurDiet() {
     });
 }
 
+function addMeal(mealName) {
+    showAddMeal.value = false;
+    let addMealData = new FormData();
+    addMealData.append("diet_id", diets.value[curDietIndex.value].id);
+    addMealData.append("meal_name", mealName);
+    axios.post("/api/add_meal", addMealData)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            return;
+        }
+
+        updateDiets();
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+    });
+}
+
 function updateDiets(useLast = false) {
     axios.get("/api/diets")
     .then(function (response) {
@@ -154,7 +175,8 @@ updateUserInfo();
             </div>
             <div>
                 <Meal v-for="meal in meals" :name="meal.name" :foods="meal.foods" class="mt-8"/>
-                <button id="btn_add_meal" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
+                <button id="btn_add_meal" @click="showAddMeal = true" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
+                <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
             </div>
             <NutritionTable :meals="meals" :userInfo="userInfo"/>
         </div>
