@@ -311,9 +311,18 @@ async fn api_food(food_id : i32, mut db : Connection<DbHandle>) -> Json {
 
 // Diets Request
 #[derive(Serialize)]
+struct DietNutrient {
+    name : String,
+    amount : f64,
+    unit : String,
+    relative : bool
+}
+
+#[derive(Serialize)]
 struct DietInfo {
     id : i32,
-    name : String
+    name : String,
+    desired_nutrition : Vec<DietNutrient>
 }
 
 #[derive(Serialize)]
@@ -355,7 +364,36 @@ async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> J
     for diet in diets {
         let diet_id : i32 = diet.try_get("id").unwrap();
         let diet_name : String = diet.try_get("name").unwrap();
-        diet_list.push(DietInfo { id: diet_id, name: diet_name });
+
+        let query_diet_nutrition = async {
+            sqlx::query("SELECT name, daily_intake, unit, relative FROM diet_nutrition JOIN nutrient ON nutrient.id = diet_nutrition.nutrient_id WHERE diet_id = $1")
+                .bind(diet_id)
+                .fetch_all(&mut *db)
+                .await
+        };
+
+        let diet_nutrition = match query_diet_nutrition.await {
+            Ok(r) => r,
+            Err(_) => return Json(DietsResponse::err("Failed to query diet nutrition"))
+        };
+
+        let mut diet_nutrients : Vec<DietNutrient> = vec![];
+        for nutrient in diet_nutrition {
+            let nutrient_name : String = nutrient.try_get("name").unwrap();
+            let nutrient_intake : f64 = nutrient.try_get("daily_intake").unwrap();
+            let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+            let nutrient_relative : bool = nutrient.try_get("relative").unwrap();
+
+            let diet_nutrient = DietNutrient {
+                name: nutrient_name,
+                amount: nutrient_intake,
+                unit: nutrient_unit,
+                relative: nutrient_relative
+            };
+            diet_nutrients.push(diet_nutrient);
+        }
+
+        diet_list.push(DietInfo { id: diet_id, name: diet_name, desired_nutrition: diet_nutrients });
     }
 
     Json(DietsResponse::ok(diet_list))
@@ -641,30 +679,21 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
 
 // User Information Request
 #[derive(Serialize)]
-struct UserNutrient {
-    name : String,
-    amount : f64,
-    unit : String,
-    relative : bool
-}
-
-#[derive(Serialize)]
 struct UserResponse {
     name : String,
     birthdate : String,
     gender : String,
     weight : f64,
-    desired_nutrition : Vec<UserNutrient>,
     err : &'static str
 }
 
 impl UserResponse {
     fn err(msg : &'static str) -> Self {
-        Self { name: "".to_string(), birthdate: "".to_string(), gender: "".to_string(), weight: 0.0, desired_nutrition : vec![], err: msg }
+        Self { name: "".to_string(), birthdate: "".to_string(), gender: "".to_string(), weight: 0.0, err: msg }
     }
 
-    fn ok(name : String, birthdate : String, gender : String, weight : f64, desired_nutrition : Vec<UserNutrient>) -> Self {
-        Self { name, birthdate, gender, weight, desired_nutrition, err: "" }
+    fn ok(name : String, birthdate : String, gender : String, weight : f64) -> Self {
+        Self { name, birthdate, gender, weight, err: "" }
     }
 }
 
@@ -693,35 +722,7 @@ async fn api_user(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Js
     let user_gender : String = user_info.try_get("gender").unwrap();
     let user_weight : f64 = user_info.try_get("weight").unwrap();
 
-    let query_user_nutrition = async {
-        sqlx::query("SELECT name, daily_intake, unit, relative FROM user_nutrition JOIN nutrient ON nutrient.id = user_nutrition.nutrient_id WHERE user_id = $1")
-            .bind(user_id)
-            .fetch_all(&mut *db)
-            .await
-    };
-
-    let user_nutrition = match query_user_nutrition.await {
-        Ok(r) => r,
-        Err(_) => return Json(UserResponse::err("Failed to query user nutrition"))
-    };
-
-    let mut user_nutrients : Vec<UserNutrient> = vec![];
-    for nutrient in user_nutrition {
-        let nutrient_name : String = nutrient.try_get("name").unwrap();
-        let nutrient_intake : f64 = nutrient.try_get("daily_intake").unwrap();
-        let nutrient_unit : String = nutrient.try_get("unit").unwrap();
-        let nutrient_relative : bool = nutrient.try_get("relative").unwrap();
-
-        let user_nutrient = UserNutrient {
-            name: nutrient_name,
-            amount: nutrient_intake,
-            unit: nutrient_unit,
-            relative: nutrient_relative
-        };
-        user_nutrients.push(user_nutrient);
-    }
-
-    Json(UserResponse::ok(user_name, user_birthdate, user_gender, user_weight, user_nutrients))
+    Json(UserResponse::ok(user_name, user_birthdate, user_gender, user_weight))
 }
 
 // Add Meal Request

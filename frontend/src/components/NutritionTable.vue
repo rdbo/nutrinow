@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 
-const props = defineProps(["meals", "userInfo", "nutrients"]);
+const props = defineProps(["meals", "diet", "userInfo", "nutrients"]);
 const nutritionTable = computed(() => {
     // TODO: Consider ALL desired nutrients, not only the ones given by the foods (maybe the food has not registered a certain nutrient)
     let nutrient_map = { };
@@ -13,7 +13,7 @@ const nutritionTable = computed(() => {
         };
     });
 
-    props.userInfo.desired_nutrition.forEach((nutrient) => {
+    props.diet.desired_nutrition.forEach((nutrient) => {
         let desired_amount = nutrient.amount;
         if (nutrient.relative) {
             desired_amount *= props.userInfo.weight;

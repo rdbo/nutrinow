@@ -23,15 +23,6 @@ CREATE TABLE nutrient (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE user_nutrition (
-    user_id SERIAL,
-    nutrient_id SERIAL,
-    daily_intake FLOAT NOT NULL,
-    relative BOOLEAN NOT NULL, /* relative to body weight */
-    FOREIGN KEY (user_id) REFERENCES user_account(id),
-    FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
-);
-
 /* NOTE: There should be a cron job that will automatically delete expired session tokens */
 CREATE TABLE user_session (
     id UUID NOT NULL,
@@ -72,6 +63,15 @@ CREATE TABLE diet (
     user_id SERIAL,
     PRIMARY KEY(id),
     FOREIGN KEY (user_id) REFERENCES user_account(id)
+);
+
+CREATE TABLE diet_nutrition (
+    diet_id SERIAL,
+    nutrient_id SERIAL,
+    daily_intake FLOAT NOT NULL,
+    relative BOOLEAN NOT NULL, /* relative to body weight */
+    FOREIGN KEY (diet_id) REFERENCES diet(id),
+    FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
 );
 
 CREATE TABLE meal (
@@ -130,39 +130,6 @@ INSERT INTO nutrient(name, unit) VALUES
     /* Others (not really 'nutrients', but they are essential information) */
     ('Water', 'ml'),
     ('Calories', 'kcal');
-
-INSERT INTO user_nutrition(user_id, nutrient_id, daily_intake, relative) VALUES
-    (1, 1, 100, true),
-    (1, 2, 100, true),
-    (1, 3, 100, true),
-    (1, 4, 100, false),
-    (1, 5, 100, false),
-    (1, 6, 100, false),
-    (1, 7, 100, false),
-    (1, 8, 100, false),
-    (1, 9, 100, false),
-    (1, 10, 100, false),
-    (1, 11, 100, false),
-    (1, 12, 100, false),
-    (1, 13, 100, false),
-    (1, 14, 100, false),
-    (1, 15, 100, false),
-    (1, 16, 100, false),
-    (1, 17, 100, false),
-    (1, 18, 100, false),
-    (1, 19, 100, false),
-    (1, 20, 100, false),
-    (1, 21, 100, false),
-    (1, 22, 100, false),
-    (1, 23, 100, false),
-    (1, 24, 100, false),
-    (1, 25, 100, false),
-    (1, 26, 100, false),
-    (1, 27, 100, false),
-    (1, 28, 100, false),
-    (1, 29, 100, false),
-    (1, 30, 100, false),
-    (1, 31, 100, false);
 
 /* TODO: Import foods from USDA database */
 INSERT INTO food(name, user_id) VALUES
@@ -248,6 +215,39 @@ INSERT INTO diet(name, user_id) VALUES
     ('Diet 1', 1),
     ('Cutting', 1),
     ('Bulking', 1);
+
+INSERT INTO diet_nutrition(diet_id, nutrient_id, daily_intake, relative) VALUES
+    (1, 1, 100, true),
+    (1, 2, 100, true),
+    (1, 3, 100, true),
+    (1, 4, 100, false),
+    (1, 5, 100, false),
+    (1, 6, 100, false),
+    (1, 7, 100, false),
+    (1, 8, 100, false),
+    (1, 9, 100, false),
+    (1, 10, 100, false),
+    (1, 11, 100, false),
+    (1, 12, 100, false),
+    (1, 13, 100, false),
+    (1, 14, 100, false),
+    (1, 15, 100, false),
+    (1, 16, 100, false),
+    (1, 17, 100, false),
+    (1, 18, 100, false),
+    (1, 19, 100, false),
+    (1, 20, 100, false),
+    (1, 21, 100, false),
+    (1, 22, 100, false),
+    (1, 23, 100, false),
+    (1, 24, 100, false),
+    (1, 25, 100, false),
+    (1, 26, 100, false),
+    (1, 27, 100, false),
+    (1, 28, 100, false),
+    (1, 29, 100, false),
+    (1, 30, 100, false),
+    (1, 31, 100, false);
 
 INSERT INTO meal(name, diet_id) VALUES
     ('Breakfest', 1),

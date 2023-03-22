@@ -231,7 +231,7 @@ updateNutrients();
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
             </div>
-            <NutritionTable :meals="meals" :userInfo="userInfo" :nutrients="nutrients"/>
+            <NutritionTable :meals="meals" :userInfo="userInfo" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
         </div>
     </div>
 </template>
