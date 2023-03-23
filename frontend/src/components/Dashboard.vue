@@ -41,6 +41,21 @@ function updateCurDiet(index) {
         // TODO: Handle error
         meals.value = [];
     });
+
+    axios.get("/api/diet_nutrition/" + diets.value[curDietIndex.value].id)
+    .then(function (response) {
+        if (response.data.err) {
+            // TODO: Handle error
+            diets.value[curDietIndex.value].desired_nutrition = [];
+            return;
+        }
+
+        diets.value[curDietIndex.value].desired_nutrition = response.data.nutrition;
+    })
+    .catch(function (err) {
+        // TODO: Handle error
+        diets.value[curDietIndex.value].desired_nutrition = [];
+    });
 }
 
 function createNewDiet(name) {
@@ -210,8 +225,8 @@ function getMealById(meal_id) {
     }
 }
 
-updateDiets();
 updateUserInfo();
+updateDiets();
 updateNutrients();
 </script>
 

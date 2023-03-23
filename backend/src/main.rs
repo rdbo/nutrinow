@@ -365,38 +365,82 @@ async fn api_diets(cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> J
         let diet_id : i32 = diet.try_get("id").unwrap();
         let diet_name : String = diet.try_get("name").unwrap();
 
-        let query_diet_nutrition = async {
-            sqlx::query("SELECT name, daily_intake, unit, relative FROM diet_nutrition JOIN nutrient ON nutrient.id = diet_nutrition.nutrient_id WHERE diet_id = $1")
-                .bind(diet_id)
-                .fetch_all(&mut *db)
-                .await
-        };
-
-        let diet_nutrition = match query_diet_nutrition.await {
-            Ok(r) => r,
-            Err(_) => return Json(DietsResponse::err("Failed to query diet nutrition"))
-        };
-
-        let mut diet_nutrients : Vec<DietNutrient> = vec![];
-        for nutrient in diet_nutrition {
-            let nutrient_name : String = nutrient.try_get("name").unwrap();
-            let nutrient_intake : f64 = nutrient.try_get("daily_intake").unwrap();
-            let nutrient_unit : String = nutrient.try_get("unit").unwrap();
-            let nutrient_relative : bool = nutrient.try_get("relative").unwrap();
-
-            let diet_nutrient = DietNutrient {
-                name: nutrient_name,
-                amount: nutrient_intake,
-                unit: nutrient_unit,
-                relative: nutrient_relative
-            };
-            diet_nutrients.push(diet_nutrient);
-        }
-
-        diet_list.push(DietInfo { id: diet_id, name: diet_name, desired_nutrition: diet_nutrients });
+        diet_list.push(DietInfo { id: diet_id, name: diet_name, desired_nutrition: vec![] });
     }
 
     Json(DietsResponse::ok(diet_list))
+}
+
+// Diet Nutrition Request
+#[derive(Serialize)]
+struct DietNutritionResponse {
+    nutrition : Vec<DietNutrient>,
+    err : &'static str
+}
+
+impl DietNutritionResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { nutrition: vec![], err: msg }
+    }
+
+    fn ok(nutrition : Vec<DietNutrient>) -> Self {
+        Self { nutrition, err: "" }
+    }
+}
+
+#[get("/diet_nutrition/<diet_id>")]
+async fn api_diet_nutrition(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DietNutritionResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(r) => r,
+        Err(s) => return Json(DietNutritionResponse::err(s))
+    };
+
+    let query_diet_owner_id = async {
+        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
+            .bind(diet_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let diet_owner_id = match query_diet_owner_id.await {
+        Ok(r) => r,
+        Err(_) => return Json(DietNutritionResponse::err("Failed to query diet owner id"))
+    };
+    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
+
+    if user_id != diet_owner_id {
+        return Json(DietNutritionResponse::err("User does not own diet"));
+    }
+
+    let query_diet_nutrition = async {
+        sqlx::query("SELECT name, daily_intake, unit, relative FROM diet_nutrition JOIN nutrient ON nutrient.id = diet_nutrition.nutrient_id WHERE diet_id = $1")
+            .bind(diet_id)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let diet_nutrition = match query_diet_nutrition.await {
+        Ok(r) => r,
+        Err(_) => return Json(DietNutritionResponse::err("Failed to query diet nutrition"))
+    };
+
+    let mut diet_nutrients : Vec<DietNutrient> = vec![];
+    for nutrient in diet_nutrition {
+        let nutrient_name : String = nutrient.try_get("name").unwrap();
+        let nutrient_intake : f64 = nutrient.try_get("daily_intake").unwrap();
+        let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+        let nutrient_relative : bool = nutrient.try_get("relative").unwrap();
+
+        let diet_nutrient = DietNutrient {
+            name: nutrient_name,
+            amount: nutrient_intake,
+            unit: nutrient_unit,
+            relative: nutrient_relative
+        };
+        diet_nutrients.push(diet_nutrient);
+    }
+
+    Json(DietNutritionResponse::ok(diet_nutrients))
 }
 
 // Delete Diet Request
@@ -913,5 +957,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition])
 }
