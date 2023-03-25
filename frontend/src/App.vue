@@ -16,7 +16,6 @@ function logout() {
     axios.post("/api/logout")
     .then(delete_session)
     .catch(delete_session);
-
 }
 
 function updateSession() {
@@ -25,10 +24,8 @@ function updateSession() {
 
 updateSession();
 
-// Periodically update session cookie
-setInterval(() => {
-    updateSession();
-}, 100);
+// Periodically update session cookie (the server can force a logout)
+setInterval(updateSession, 100);
 </script>
 
 <template>
