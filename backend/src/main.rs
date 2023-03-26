@@ -985,7 +985,7 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     // will ignore the case when searching. 
     let mut food_name_search = food_name.replace(" ", "%");
     food_name_search.insert(0, '%');
-    food_name_search.insert(food_name_search.len() - 1, '%');
+    food_name_search.push('%');
 
     let query_food_matches = async {
         sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 LIMIT 10")
