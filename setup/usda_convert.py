@@ -62,15 +62,18 @@ usda_cvt = {
 }
 
 # starting IDs
-food_id = 1
-serving_id = 1
-serving_nutrient = 1
+next_food_id = "(COALESCE((SELECT SUM((SELECT id FROM food ORDER BY id DESC LIMIT 1) + 1)), 1))"
+food_id = "(SELECT id FROM food ORDER BY id DESC LIMIT 1)"
+next_serving_id = "(COALESCE((SELECT SUM((SELECT id FROM serving ORDER BY id DESC LIMIT 1) + 1)), 1))"
+serving_id = "(SELECT id FROM serving ORDER BY id DESC LIMIT 1)"
 
-for obj in usda_json["FoundationFoods"]:
+dataset_name = list(usda_json)[0]
+
+for obj in usda_json[dataset_name]:
     nutrients = {}
     food_name = obj["description"].replace("'", "''")
-    sql_out.write(f"INSERT INTO food(id, name, user_id) VALUES ({food_id}, '{food_name}', 1);\n")
-    sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount) VALUES({serving_id}, {food_id}, 'g', 100);\n")
+    sql_out.write(f"INSERT INTO food(id, name, user_id) VALUES ({next_food_id}, '{food_name}', 1);\n")
+    sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount) VALUES({next_serving_id}, {food_id}, 'g', 100);\n")
     for food_nutrient in obj["foodNutrients"]:
         # ignore entries that are not nutrients
         if food_nutrient["type"] != "FoodNutrient":
@@ -91,11 +94,9 @@ for obj in usda_json["FoundationFoods"]:
     for nutrient in nutrients:
         nutrient_id = f"(SELECT id FROM nutrient WHERE name = '{nutrient}')"
         nutrient_amount = nutrients[nutrient]["amount"]
-        sql_out.write(f"INSERT INTO serving_nutrient VALUES({serving_id}, {nutrient_id}, {nutrient_amount});\n")
+        sql_out.write(f"INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES({serving_id}, {nutrient_id}, {nutrient_amount});\n")
 
     sql_out.write("\n")
     # TODO: Add servings provided by USDA (foodPortions)
-    serving_id += 1
-    food_id += 1
 
 sql_out.close()

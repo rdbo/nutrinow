@@ -3,3 +3,4 @@ frontend/dist
 frontend/public/styles.css
 backend/target
 setup/usda.json
+setup/usda.sql
