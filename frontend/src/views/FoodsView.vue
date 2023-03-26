@@ -15,6 +15,7 @@ const searchResults = ref([]);
 function searchFood(e) {
     e.preventDefault();
     router.push({ name: 'foods', params: { 'foodName': searchQuery.value } });
+    document.activeElement.blur(); // remove focus from search bar
     updateResults(searchQuery.value);
 }
 
