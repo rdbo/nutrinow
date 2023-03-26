@@ -9,14 +9,6 @@ const displayNutrients = getDisplayNutrients(props.food.servings[0].nutrients);
 <template>
 <div class="flex justify-between border-b-2 border-gray-700 bg-gray-200 cursor-pointer select-none">
     <div class="flex">
-        <!--
-            TODO: Remove or implement up/down on database
-
-        <div class="flex flex-col bg-gray-200 border-r-2 border-gray-700">
-            <button class="grow border-b-2 border-gray-700 px-1">Up</button>
-            <button class="grow px-1">Down</button>
-        </div>
-        -->
         <div class="flex items-center justify-center text-center">
             <p class="text-lg my-2 mx-2">{{ food.name }} ({{ food.servings[0].amount }}{{ food.servings[0].unit }})</p>
         </div>
