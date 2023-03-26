@@ -985,13 +985,19 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     // and will also match things at the center and end of names.
     // The input 'Chicken Breast' will become '%Chicken%Breast%', and ILIKE
     // will ignore the case when searching. 
-    let mut food_name_search = food_name.replace(" ", "%");
+    let mut best_search = food_name.clone();
+    best_search.push('%');
+
+    let second_best_search = best_search.replace(" ", "%");
+
+    let mut food_name_search = second_best_search.clone();
     food_name_search.insert(0, '%');
-    food_name_search.push('%');
 
     let query_food_matches = async {
-        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 LIMIT 20")
+        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 ORDER BY (CASE WHEN name ILIKE $2 THEN 1 WHEN name ILIKE $3 THEN 2 ELSE 3 END) ASC LIMIT 50")
             .bind(food_name_search)
+            .bind(best_search)
+            .bind(second_best_search)
             .fetch_all(&mut *db)
             .await
     };
