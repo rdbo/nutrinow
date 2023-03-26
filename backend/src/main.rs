@@ -944,6 +944,70 @@ async fn api_nutrients(mut db : Connection<DbHandle>) -> Json<NutrientsResponse>
     Json(NutrientsResponse::ok(nutrient_list))
 }
 
+// Food Search Request
+#[derive(Serialize)]
+struct Serving {
+    id : i32,
+    amount : f64,
+    unit : String,
+    nutrients : Vec<ServingNutrient>
+}
+
+#[derive(Serialize)]
+struct Food {
+    id: i32,
+    name : String,
+    servings : Vec<Serving>
+}
+
+#[derive(Serialize)]
+struct FoodSearchResponse {
+    matches : Vec<Food>,
+    err : &'static str
+}
+
+impl FoodSearchResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { matches: vec![], err: msg }
+    }
+
+    fn ok(matches : Vec<Food>) -> Self {
+        Self { matches, err: "" }
+    }
+}
+
+#[get("/food_search/<food_name>")]
+async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> Json<FoodSearchResponse> {
+    // treat search string for ILIKE statement from PostgreSQL
+    // it will replace all spaces with % to match anything in between them
+    // and will also match things at the center and end of names.
+    // The input 'Chicken Breast' will become '%Chicken%Breast%', and ILIKE
+    // will ignore the case when searching. 
+    let mut food_name_search = food_name.replace(" ", "%");
+    food_name_search.insert(0, '%');
+    food_name_search.insert(food_name_search.len() - 1, '%');
+
+    let query_food_matches = async {
+        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 LIMIT 10")
+            .bind(food_name_search)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let food_matches = match query_food_matches.await {
+        Ok(r) => r,
+        Err(_) => return Json(FoodSearchResponse::err("Failed to query food matches"))
+    };
+
+    for food_match in food_matches {
+        let food_id : i32 = food_match.try_get("id").unwrap();
+        let food_name : String = food_match.try_get("name").unwrap();
+        println!("{} {}", food_id, food_name);
+    }
+
+    Json(FoodSearchResponse::ok(vec![]))
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -957,5 +1021,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search])
 }
