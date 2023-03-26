@@ -14,6 +14,7 @@ const searchResults = ref([]);
 
 function searchFood(e) {
     e.preventDefault();
+    searchResults.value = [];
     router.push({ name: 'foods', params: { 'foodName': searchQuery.value } });
     document.activeElement.blur(); // remove focus from search bar
     updateResults(searchQuery.value);
@@ -23,7 +24,6 @@ function updateResults(foodName) {
     searchStatus.value = "Searching for: " + foodName + "...";
     axios.get("/api/food_search/" + foodName)
     .then(function (response) {
-        searchResults.value = [];
         if (response.data.err) {
             // TODO: Handle error
             return;
@@ -39,7 +39,6 @@ function updateResults(foodName) {
     })
     .catch(function (err) {
         // TODO: Handle error
-        searchResults.value = [];
     });
 }
 
