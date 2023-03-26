@@ -168,7 +168,7 @@ const food = {
             </div>
             <div v-if="searchResults.length > 0" class="my-2">
                 <h2 class="text-gray-500 text-center my-2">Search Results</h2>
-                <div class="border-gray-700 border-2 rounded-md overflow-hidden">
+                <div class="border-gray-700 border-2 border-b-0 rounded-t-md overflow-hidden">
                     <MealFood :search="true" :food="food"/>
                     <MealFood :search="true" :food="food"/>
                     <MealFood :search="true" :food="food"/>
