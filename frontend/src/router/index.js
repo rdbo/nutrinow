@@ -31,7 +31,7 @@ const router = createRouter({
             component: RegisterView
         },
         {
-            path: '/foods',
+            path: '/foods/:foodName(.*)*',
             name: 'foods',
             component: FoodsView
         },

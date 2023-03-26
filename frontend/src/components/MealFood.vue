@@ -1,10 +1,12 @@
 <script setup>
+import { getNutrientsFromMealFood, getDisplayNutrients } from "../composables/foods.js";
 import { TrashIcon } from "@heroicons/vue/20/solid";
 import { PencilSquareIcon } from "@heroicons/vue/20/solid";
 import { PlusIcon } from "@heroicons/vue/20/solid";
 
 const props = defineProps(["food"]);
-const displayNutrients = ["Protein", "Carbohydrates", "Fats", "Calories"];
+const nutrients = getNutrientsFromMealFood(props.food);
+const displayNutrients = getDisplayNutrients(nutrients);
 </script>
 
 <template>
@@ -28,14 +30,13 @@ const displayNutrients = ["Protein", "Carbohydrates", "Fats", "Calories"];
     <div class="text-gray-500 flex text-base">
         <div class="mx-2 my-2 flex">
             <div class="mx-4 text-right">
-                <div v-for="nutrient in food.base_nutrients">
-                    <p v-if="displayNutrients.includes(nutrient.name)">{{ nutrient.name }}</p>
+                <div v-for="nutrient in displayNutrients">
+                    <p>{{ nutrient.name }}</p>
                 </div>
             </div>
             <div>
-                <div v-for="nutrient in food.base_nutrients">
-                    <!-- proportionally calculate nutrient amount from base serving values -->
-                    <p v-if="displayNutrients.includes(nutrient.name)">{{ ((nutrient.amount / food.serving_base) * food.serving_amount).toFixed(1) }}{{ nutrient.unit }}</p>
+                <div v-for="nutrient in displayNutrients">
+                    <p>{{ nutrient.amount }}{{ nutrient.unit }}</p>
                 </div>
             </div>
         </div>

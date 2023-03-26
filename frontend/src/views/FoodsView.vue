@@ -4,22 +4,31 @@ import axios from "axios";
 import { MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
 import SearchFood from "../components/SearchFood.vue";
 
+const noMatches = ref(false);
 const searchQuery = ref(null);
 const searchResults = ref([]);
 
-function updateResults() {
+function updateResults(e) {
+    e.preventDefault();
     axios.get("/api/food_search/" + searchQuery.value)
     .then(function (response) {
+        searchResults.value = [];
         if (response.data.err) {
             // TODO: Handle error
             return;
         }
 
+        if (!response.data.matches.length) {
+            noMatches.value = true;
+            return;
+        }
+
+        noMatches.value = false;
         searchResults.value = response.data.matches;
-        console.log(searchResults.value);
     })
     .catch(function (err) {
         // TODO: Handle error
+        searchResults.value = [];
     });
 }
 </script>
@@ -29,16 +38,19 @@ function updateResults() {
         <div class="w-full max-w-2xl">
             <h1 class="text-6xl my-2 text-center">Foods</h1>
             <div class="w-full flex justify-center">
-                <div class="text-2xl flex rounded-md overflow-hidden border-gray-400 border-2 grow">
+                <form @submit="updateResults" class="text-2xl flex rounded-md overflow-hidden border-gray-400 border-2 grow">
                     <input v-model="searchQuery" class="bg-red-50 px-2 w-full" placeholder="Search for a food"/>
-                    <button @click="updateResults" class="bg-orange-300 px-4 py-2 border-gray-400 border-l-2"><MagnifyingGlassIcon class="text-yellow-700 w-9"/></button>
-                </div>
+                    <button class="bg-orange-300 px-4 py-2 border-gray-400 border-l-2"><MagnifyingGlassIcon class="text-yellow-700 w-9"/></button>
+                </form>
             </div>
             <div v-if="searchResults.length > 0" class="my-2">
                 <h2 class="text-gray-500 text-center my-2">Search Results</h2>
                 <div class="border-gray-700 border-2 border-b-0 rounded-t-md overflow-hidden">
                     <SearchFood v-for="food in searchResults" :food="food"/>
                 </div>
+            </div>
+            <div v-else-if="noMatches">
+                <h2 class="text-gray-700 text-center text-4xl my-4">No Matches Found</h2>
             </div>
         </div>
     </div>
