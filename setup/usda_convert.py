@@ -77,7 +77,7 @@ for filename in [os.path.join(usda_path, f) for f in os.listdir(usda_path) if os
         nutrients = {}
         food_name = obj["description"].replace("'", "''")
         sql_out.write(f"INSERT INTO food(id, name, user_id) VALUES ({next_food_id}, '{food_name}', 1);\n")
-        sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount) VALUES({next_serving_id}, {food_id}, 'g', 100);\n")
+        sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount, relative) VALUES({next_serving_id}, {food_id}, 'g', 100, NULL);\n")
         for food_nutrient in obj["foodNutrients"]:
             # ignore entries that are not nutrients
             if food_nutrient["type"] != "FoodNutrient":

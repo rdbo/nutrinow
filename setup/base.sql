@@ -41,12 +41,14 @@ CREATE TABLE food (
 );
 
 CREATE TABLE serving (
-    id SERIAL,
+    id INTEGER, /* SERIAL cannot be NULL */
     food_id SERIAL,
     unit VARCHAR(100) NOT NULL,
     amount FLOAT NOT NULL,
+    relative INTEGER NULL, /* contains the ID of another serving, and a relative amount, or NULL */
     PRIMARY KEY(id),
-    FOREIGN KEY (food_id) REFERENCES food(id)
+    FOREIGN KEY (food_id) REFERENCES food(id),
+    FOREIGN KEY (relative) REFERENCES serving(id)
 );
 
 CREATE TABLE serving_nutrient (
