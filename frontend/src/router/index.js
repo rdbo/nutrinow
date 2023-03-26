@@ -4,6 +4,7 @@ import AboutView from '../views/AboutView.vue';
 import LoginView from '../views/LoginView.vue';
 import PageNotFound from '../views/PageNotFound.vue';
 import RegisterView from '../views/RegisterView.vue';
+import FoodsView from '../views/FoodsView.vue';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +29,11 @@ const router = createRouter({
             path: '/register',
             name: 'register',
             component: RegisterView
+        },
+        {
+            path: '/foods',
+            name: 'foods',
+            component: FoodsView
         },
         {
             path: '/:invalidPage(.*)',

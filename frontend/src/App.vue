@@ -36,6 +36,7 @@ setInterval(updateSession, 100);
                     <div class="grow text-lg flex justify-center">
                         <RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item">Home</RouterLink>
                         <RouterLink :to="{ name: 'about' }" class="nav-item">About</RouterLink>
+                        <RouterLink :to="{ name: 'foods' }" class="nav-item">Foods</RouterLink>
                         <!-- TODO: Groud menus that don't show when user is logged in and vice-versa -->
                         <RouterLink v-if="!session_id" :to="{ name: 'login' }" class="nav-item">Login</RouterLink>
                         <RouterLink v-if="!session_id" :to="{ name: 'register' }" class="nav-item">Register</RouterLink>
