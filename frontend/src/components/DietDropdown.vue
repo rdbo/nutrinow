@@ -1,6 +1,6 @@
 <script setup>
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { ChevronDownIcon, PlusCircleIcon, XCircleIcon, PencilSquareIcon } from '@heroicons/vue/20/solid'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
+import { ChevronDownIcon, PlusCircleIcon, XCircleIcon, PencilSquareIcon } from '@heroicons/vue/20/solid';
 
 const props = defineProps(["curDietIndex", "diets"]);
 const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edit-cur-diet"]);

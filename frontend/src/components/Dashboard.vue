@@ -3,7 +3,6 @@ import { ref } from "vue";
 import axios from "axios";
 import DietDropdown from "./DietDropdown.vue";
 import Meal from "./Meal.vue";
-import MealFood from "./MealFood.vue";
 import NutritionTable from "./NutritionTable.vue";
 import ModalDeleteDiet from "./ModalDeleteDiet.vue";
 import ModalNewDiet from "./ModalNewDiet.vue";
