@@ -133,7 +133,7 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Manganese', 'mg'),
     ('Selenium', 'mg'),
     /* Others (not really 'nutrients', but they are essential information) */
-    ('Water', 'ml');
+    ('Water', 'ml'); /* USDA data has water in grams (g), but 1 gram of water = 1 ml of water */
 /*    ('Calories', 'kcal');*/ /* calories will be calculated dynamically (Proteins * 4 + Carbos * 4 + Fats * 9) */
 
 INSERT INTO diet(name, user_id) VALUES
