@@ -34,7 +34,7 @@ CREATE TABLE user_session (
 
 CREATE TABLE food (
     id SERIAL,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     user_id SERIAL,
     PRIMARY KEY(id),
     FOREIGN KEY (user_id) REFERENCES user_account(id)
@@ -90,6 +90,8 @@ CREATE TABLE meal_serving (
     FOREIGN KEY (serving_id) REFERENCES serving(id)
 );
 
+/* TODO: Add nutrient categories */
+
 INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES
     ('Admin', 'admin@localhost', 'M', '70', '1970-01-01', 'f1884986dc7b68fb7ac18c5a7dd2bea6467565300378713fca1fe468bc4be6a6'); /* Password: nutrinow_admin */
 
@@ -98,12 +100,14 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Protein', 'g'),
     ('Carbohydrates', 'g'), /* Total carbohydrates, including fiber and sugar */
     ('Fats', 'g'), /* Total fat, including saturated, unsaturated, and trans fat */
-    ('Sugar', 'g'),
+    /* Carbohydrates */
+    ('Sugars', 'g'),
     ('Fiber', 'g'),
+    /* Lipids (Fats) */
     ('Saturated Fat', 'g'),
     ('Unsaturated Fat', 'g'),
     ('Trans Fat', 'g'),
-    /* Micronutrients */
+    /* Vitamins */
     ('Vitamin A', 'μg'),
     ('Vitamin B1', 'μg'),
     ('Vitamin B2', 'μg'),
@@ -117,99 +121,20 @@ INSERT INTO nutrient(name, unit) VALUES
     ('Vitamin D', 'μg'),
     ('Vitamin E', 'mg'),
     ('Vitamin K', 'μg'),
-    ('Cholesterol', 'mg'),
-    /* Macrominerals */
+    /* Minerals */
     ('Calcium', 'mg'),
-    ('Magnesium', 'mg'),
-    ('Potassium', 'mg'),
-    ('Phosphorus', 'mg'),
-    ('Sodium', 'mg'),
-    /* Trace Minerals */
     ('Iron', 'mg'),
+    ('Magnesium', 'mg'),
+    ('Phosphorus', 'mg'),
+    ('Potassium', 'mg'),
+    ('Sodium', 'mg'),
     ('Zinc', 'mg'),
+    ('Copper', 'mg'),
+    ('Manganese', 'mg'),
+    ('Selenium', 'mg'),
     /* Others (not really 'nutrients', but they are essential information) */
-    ('Water', 'ml'),
-    ('Calories', 'kcal');
-
-/* TODO: Import foods from USDA database */
-INSERT INTO food(name, user_id) VALUES
-    ('Chicken Breast', 1),
-    ('Skimmed Milk', 1);
-
-INSERT INTO serving(food_id, amount, unit) VALUES
-    (1, '100', 'g'), /* Chicken Breast */
-    (1, '200', 'g'), /* Chicken Breast */
-    (2, '200', 'ml'); /* Skimmed Milk */
-
-INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
-    (1, 1, 31), /* Protein */
-    (1, 2, 0), /* Carbohydrates */
-    (1, 3, 3.57), /* Fats */
-    (1, 4, 0), /* Sugar */
-    (1, 5, 0), /* Fiber */
-    (1, 6, 1.01), /* Saturated Fat */
-    (1, 7, 2.01), /* Unsaturated Fat */
-    (1, 8, 0), /* Trans Fat */
-    (1, 9, 6), /* Vitamin A */
-    (1, 10, 0), /* Vitamin B1 */
-    (1, 11, 0), /* Vitamin B2 */
-    (1, 12, 0), /* Vitamin B3 */
-    (1, 13, 0), /* Vitamin B5 */
-    (1, 14, 0.6), /* Vitamin B6 */
-    (1, 15, 0), /* Vitamin B7 */
-    (1, 16, 0), /* Vitamin B9 */
-    (1, 17, 0.34), /* Vitamin B12 */
-    (1, 18, 0), /* Vitamin C */
-    (1, 19, 0.1), /* Vitamin D */
-    (1, 20, 0.27), /* Vitamin E */
-    (1, 21, 0.3), /* Vitamin K */
-    (1, 22, 85), /* Cholesterol */
-    (1, 23, 15), /* Calcium */
-    (1, 24, 29), /* Magnesium */
-    (1, 25, 256), /* Potassium */
-    (1, 26, 228), /* Phosphorus */
-    (1, 27, 74), /* Sodium */
-    (1, 28, 1.04), /* Iron */
-    (1, 29, 1), /* Zinc */
-    (1, 30, 0.0653), /* Water */
-    (1, 31, 165); /* Calories */
-
-/* TODO: Update values */
-INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES
-    (2, 1, 31), /* Protein */
-    (2, 2, 0), /* Carbohydrates */
-    (2, 3, 0), /* Sugar */
-    (2, 4, 0), /* Fiber */
-    (2, 5, 3.57), /* Fats */
-    (2, 6, 1.01), /* Saturated Fat */
-    (2, 7, 2.01), /* Unsaturated Fat */
-    (2, 8, 0), /* Trans Fat */
-    (2, 9, 6), /* Vitamin A */
-    (2, 10, 0), /* Vitamin B1 */
-    (2, 11, 0), /* Vitamin B2 */
-    (2, 12, 0), /* Vitamin B3 */
-    (2, 13, 0), /* Vitamin B5 */
-    (2, 14, 0.6), /* Vitamin B6 */
-    (2, 15, 0), /* Vitamin B7 */
-    (2, 16, 0), /* Vitamin B9 */
-    (2, 17, 0.34), /* Vitamin B12 */
-    (2, 18, 0), /* Vitamin C */
-    (2, 19, 0.1), /* Vitamin D */
-    (2, 20, 0.27), /* Vitamin E */
-    (2, 21, 0.3), /* Vitamin K */
-    (2, 22, 85), /* Cholesterol */
-    (2, 23, 15), /* Calcium */
-    (2, 24, 29), /* Magnesium */
-    (2, 25, 256), /* Potassium */
-    (2, 26, 228), /* Phosphorus */
-    (2, 27, 74), /* Sodium */
-    (2, 28, 1.04), /* Iron */
-    (2, 29, 1), /* Zinc */
-    (2, 30, 0.0653), /* Water */
-    (2, 31, 165); /* Calories */
-
-
-/* TODO: Add data for Skimmed Milk */
+    ('Water', 'ml');
+/*    ('Calories', 'kcal');*/ /* calories will be calculated dynamically (Proteins * 4 + Carbos * 4 + Fats * 9) */
 
 INSERT INTO diet(name, user_id) VALUES
     ('Diet 1', 1),
@@ -247,13 +172,10 @@ INSERT INTO diet_nutrition(diet_id, nutrient_id, daily_intake, relative) VALUES
     (1, 28, 100, false),
     (1, 29, 100, false),
     (1, 30, 100, false),
-    (1, 31, 100, false);
+    (1, 31, 100, false),
+    (1, 32, 100, false);
 
 INSERT INTO meal(name, diet_id) VALUES
     ('Breakfest', 1),
     ('Lunch', 1);
-
-INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES
-    (1, 1, 50),
-    (2, 1, 100);
 
