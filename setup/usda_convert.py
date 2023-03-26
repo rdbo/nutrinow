@@ -3,13 +3,10 @@
 #  - NutriNow must use the same units as USDA (or convert between the units)
 #  - If a nutrient is not specified, 0 is assumed (on client-side)
 
+import os
 import json
 
 sql_out = open("usda.sql", "w")
-
-usda_file = open("usda.json", "r")
-usda_json = json.load(usda_file)
-usda_file.close()
 
 # convertion table from USDA nutrient to NutriNow nutrient
 usda_cvt = {
@@ -61,42 +58,49 @@ usda_cvt = {
     ### note: calories will be calculated on client-side
 }
 
-# starting IDs
+# valid table IDs
 next_food_id = "(COALESCE((SELECT SUM((SELECT id FROM food ORDER BY id DESC LIMIT 1) + 1)), 1))"
 food_id = "(SELECT id FROM food ORDER BY id DESC LIMIT 1)"
 next_serving_id = "(COALESCE((SELECT SUM((SELECT id FROM serving ORDER BY id DESC LIMIT 1) + 1)), 1))"
 serving_id = "(SELECT id FROM serving ORDER BY id DESC LIMIT 1)"
 
-dataset_name = list(usda_json)[0]
+usda_path = f"{os.curdir}{os.sep}usda"
+for filename in [os.path.join(usda_path, f) for f in os.listdir(usda_path) if os.path.isfile(os.path.join(usda_path, f))]:
+    print(f"[*] Processing: {filename}...")
+    usda_file = open(filename, "r")
+    usda_json = json.load(usda_file)
+    usda_file.close()
 
-for obj in usda_json[dataset_name]:
-    nutrients = {}
-    food_name = obj["description"].replace("'", "''")
-    sql_out.write(f"INSERT INTO food(id, name, user_id) VALUES ({next_food_id}, '{food_name}', 1);\n")
-    sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount) VALUES({next_serving_id}, {food_id}, 'g', 100);\n")
-    for food_nutrient in obj["foodNutrients"]:
-        # ignore entries that are not nutrients
-        if food_nutrient["type"] != "FoodNutrient":
-            continue
-        # ignore nutrients that are not in the database
-        if food_nutrient["nutrient"]["name"] not in usda_cvt:
-            continue
+    dataset_name = list(usda_json)[0]
 
-        nutrient_name = usda_cvt[food_nutrient["nutrient"]["name"]]
-        nutrient_amount = food_nutrient["amount"]
+    for obj in usda_json[dataset_name]:
+        nutrients = {}
+        food_name = obj["description"].replace("'", "''")
+        sql_out.write(f"INSERT INTO food(id, name, user_id) VALUES ({next_food_id}, '{food_name}', 1);\n")
+        sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount) VALUES({next_serving_id}, {food_id}, 'g', 100);\n")
+        for food_nutrient in obj["foodNutrients"]:
+            # ignore entries that are not nutrients
+            if food_nutrient["type"] != "FoodNutrient":
+                continue
+            # ignore nutrients that are not in the database
+            if food_nutrient["nutrient"]["name"] not in usda_cvt:
+                continue
 
-        if nutrient_name in nutrients:
-            # account for summed nutrients (e.g unsatured fats)
-            nutrients[nutrient_name]["amount"] += nutrient_amount
-        else:
-            nutrients[nutrient_name] = { "amount": nutrient_amount, "unit": food_nutrient["nutrient"]["unitName"] }
-    
-    for nutrient in nutrients:
-        nutrient_id = f"(SELECT id FROM nutrient WHERE name = '{nutrient}')"
-        nutrient_amount = nutrients[nutrient]["amount"]
-        sql_out.write(f"INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES({serving_id}, {nutrient_id}, {nutrient_amount});\n")
+            nutrient_name = usda_cvt[food_nutrient["nutrient"]["name"]]
+            nutrient_amount = float(food_nutrient["amount"])
 
-    sql_out.write("\n")
-    # TODO: Add servings provided by USDA (foodPortions)
+            if nutrient_name in nutrients:
+                # account for summed nutrients (e.g unsatured fats)
+                nutrients[nutrient_name]["amount"] += nutrient_amount
+            else:
+                nutrients[nutrient_name] = { "amount": nutrient_amount, "unit": food_nutrient["nutrient"]["unitName"] }
+        
+        for nutrient in nutrients:
+            nutrient_id = f"(SELECT id FROM nutrient WHERE name = '{nutrient}')"
+            nutrient_amount = nutrients[nutrient]["amount"]
+            sql_out.write(f"INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES({serving_id}, {nutrient_id}, {nutrient_amount});\n")
+
+        sql_out.write("\n")
+        # TODO: Add servings provided by USDA (foodPortions)
 
 sql_out.close()
