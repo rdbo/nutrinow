@@ -45,7 +45,7 @@ CREATE TABLE serving (
     food_id SERIAL,
     unit VARCHAR(100) NOT NULL,
     amount FLOAT NOT NULL,
-    relative INTEGER NULL, /* contains the ID of another serving, and a relative amount, or NULL */
+    relative INTEGER NULL, /* contains the ID of another serving, and a relative amount, or NULL. NOTE: Make sure it is never relative to another relative serving */
     PRIMARY KEY(id),
     FOREIGN KEY (food_id) REFERENCES food(id),
     FOREIGN KEY (relative) REFERENCES serving(id)

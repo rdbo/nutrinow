@@ -100,6 +100,18 @@ for filename in [os.path.join(usda_path, f) for f in os.listdir(usda_path) if os
             nutrient_amount = nutrients[nutrient]["amount"]
             sql_out.write(f"INSERT INTO serving_nutrient(serving_id, nutrient_id, amount) VALUES({serving_id}, {nutrient_id}, {nutrient_amount});\n")
 
+        # temporary table with the current id
+        sql_out.write("CREATE TABLE tmp_serving_id(serving_id SERIAL);\n")
+        sql_out.write(f"INSERT INTO tmp_serving_id VALUES({serving_id});\n")
+        relative_serving_id = "(SELECT serving_id FROM tmp_serving_id LIMIT 1)"
+
+        for portion in obj["foodPortions"]:
+            portion_unit = portion["measureUnit"]["abbreviation"]
+            portion_amount = portion["gramWeight"] # relative amount to 100g
+            sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount, relative) VALUES({next_serving_id}, {food_id}, '{portion_unit}', {portion_amount}, {relative_serving_id});\n")
+
+        sql_out.write("DROP TABLE tmp_serving_id;\n")
+
         sql_out.write("\n")
         # TODO: Add servings provided by USDA (foodPortions)
 
