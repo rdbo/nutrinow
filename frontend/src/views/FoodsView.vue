@@ -8,7 +8,7 @@ import SearchFood from "../components/SearchFood.vue";
 const router = useRouter();
 const route = useRoute();
 
-const noMatches = ref(false);
+const searchStatus = ref("");
 const searchQuery = ref(null);
 const searchResults = ref([]);
 
@@ -19,6 +19,7 @@ function searchFood(e) {
 }
 
 function updateResults(foodName) {
+    searchStatus.value = "Searching for: " + foodName + "...";
     axios.get("/api/food_search/" + foodName)
     .then(function (response) {
         searchResults.value = [];
@@ -28,11 +29,11 @@ function updateResults(foodName) {
         }
 
         if (!response.data.matches.length) {
-            noMatches.value = true;
+            searchStatus.value = "No Matches Found";
             return;
         }
 
-        noMatches.value = false;
+        searchStatus.value = "";
         searchResults.value = response.data.matches;
     })
     .catch(function (err) {
@@ -64,8 +65,8 @@ if (route.params.foodName) {
                         <SearchFood v-for="food in searchResults" :food="food"/>
                     </div>
                 </div>
-                <div v-else-if="noMatches">
-                    <h2 class="text-gray-700 text-center text-4xl my-4">No Matches Found</h2>
+                <div v-else-if="searchStatus">
+                    <h2 class="text-gray-700 text-center text-4xl my-4">{{ searchStatus }}</h2>
                 </div>
             </div>
         </div>

@@ -21,7 +21,7 @@ const displayNutrients = getDisplayNutrients(props.food.servings[0].nutrients);
             <p class="text-lg my-2 mx-2">{{ food.name }} ({{ food.servings[0].amount }}{{ food.servings[0].unit }})</p>
         </div>
     </div>
-    <div class="text-gray-500 flex text-base">
+    <div class="text-gray-500 flex text-base cursor-pointer select-none">
         <div class="mx-2 my-2 flex">
             <div class="mx-4 text-right">
                 <div v-for="nutrient in displayNutrients">
@@ -35,9 +35,6 @@ const displayNutrients = getDisplayNutrients(props.food.servings[0].nutrients);
                 </div>
             </div>
         </div>
-        <button class="bg-gray-500 text-gray-200 px-4 py-2 flex items-center justify-center border-l-2 border-gray-700 py-4 px-4 hover:bg-gray-400 hover:text-gray-700">
-            <PlusIcon class="w-6"/>
-        </button>
     </div>
 </div>
 </template>
