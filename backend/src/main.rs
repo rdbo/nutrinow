@@ -2,6 +2,8 @@
  * TODO:
      Add helper function for querying user ID from session ID
      Add helper function for getting session ID from cookie jar
+     Add helper function for getting serving nutrients
+     Limit amount of servings per food (too many would slow down the server)
  */
 
 use rocket::{
@@ -988,7 +990,7 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     food_name_search.push('%');
 
     let query_food_matches = async {
-        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 LIMIT 10")
+        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 LIMIT 20")
             .bind(food_name_search)
             .fetch_all(&mut *db)
             .await
@@ -999,13 +1001,72 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
         Err(_) => return Json(FoodSearchResponse::err("Failed to query food matches"))
     };
 
+    let mut food_list : Vec<Food> = vec![];
     for food_match in food_matches {
         let food_id : i32 = food_match.try_get("id").unwrap();
         let food_name : String = food_match.try_get("name").unwrap();
-        println!("{} {}", food_id, food_name);
+
+        let query_food_servings = async {
+            sqlx::query("SELECT id, amount, unit FROM serving WHERE food_id = $1")
+                .bind(food_id)
+                .fetch_all(&mut *db)
+                .await
+        };
+        let food_servings = match query_food_servings.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+
+        let mut food_serving_list : Vec<Serving> = vec![];
+        for food_serving in food_servings {
+            let serving_id : i32 = food_serving.try_get("id").unwrap();
+            let serving_amount : f64 = food_serving.try_get("amount").unwrap();
+            let serving_unit : String = food_serving.try_get("unit").unwrap();
+
+            let query_nutrients = async {
+                sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
+                .bind(serving_id)
+                .fetch_all(&mut *db)
+                .await
+            };
+
+            let nutrients = match query_nutrients.await {
+                Ok(r) => r,
+                Err(_) => continue
+            };
+
+            let mut nutrient_list : Vec<ServingNutrient> = vec![];
+            for nutrient in nutrients {
+                let nutrient_name : String = nutrient.try_get("name").unwrap();
+                let nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
+                let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+                let nutrient_item = ServingNutrient {
+                    name : nutrient_name,
+                    amount : nutrient_amount,
+                    unit : nutrient_unit
+                };
+                nutrient_list.push(nutrient_item);
+            }
+
+            let serving = Serving {
+                id: serving_id,
+                amount: serving_amount,
+                unit: serving_unit,
+                nutrients: nutrient_list
+            };
+
+            food_serving_list.push(serving);
+        }
+
+        let food = Food {
+            id: food_id,
+            name: food_name,
+            servings: food_serving_list
+        };
+        food_list.push(food);
     }
 
-    Json(FoodSearchResponse::ok(vec![]))
+    Json(FoodSearchResponse::ok(food_list))
 }
 
 // Handle Vue routes that are not static files
