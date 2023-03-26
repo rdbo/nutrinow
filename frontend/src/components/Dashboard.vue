@@ -232,7 +232,7 @@ updateNutrients();
 
 <template>
     <div class="mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
-        <h1 class="text-2xl">Dashboard - {{ userInfo.name }}</h1>
+        <h1 class="text-2xl max-md:text-center">Dashboard - {{ userInfo.name }}</h1>
         <div>
             <div class="my-4">
                 <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
