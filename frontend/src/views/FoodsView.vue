@@ -12,6 +12,7 @@ const route = useRoute();
 const searchStatus = ref("");
 const searchQuery = ref(null);
 const searchResults = ref([]);
+const selectedFood = ref(null);
 
 function searchFood(e) {
     e.preventDefault();
@@ -48,7 +49,7 @@ if (route.params.foodName) {
     updateResults(route.params.foodName);
 }
 
-const food = {"id":1,"name":"Hummus, commercial","serving_id":1,"serving_base":100,"serving_amount":100,"serving_unit":"g","nutrients":[{"name":"Vitamin C","amount":0,"unit":"mg"},{"name":"Vitamin B1","amount":0.15,"unit":"μg"},{"name":"Vitamin B2","amount":0.115,"unit":"μg"},{"name":"Vitamin B9","amount":36,"unit":"μg"},{"name":"Vitamin K","amount":17.2,"unit":"μg"},{"name":"Saturated Fat","amount":2.22,"unit":"g"},{"name":"Protein","amount":7.35,"unit":"g"},{"name":"Fiber","amount":5.4,"unit":"g"},{"name":"Iron","amount":2.41,"unit":"mg"},{"name":"Magnesium","amount":71.1,"unit":"mg"},{"name":"Phosphorus","amount":166,"unit":"mg"},{"name":"Sodium","amount":438,"unit":"mg"},{"name":"Copper","amount":0.348,"unit":"mg"},{"name":"Manganese","amount":1.06,"unit":"mg"},{"name":"Vitamin A","amount":1,"unit":"μg"},{"name":"Unsaturated Fat","amount":13.850000000000001,"unit":"g"},{"name":"Vitamin B3","amount":0.948,"unit":"μg"},{"name":"Vitamin B5","amount":0.318,"unit":"μg"},{"name":"Vitamin B6","amount":0.143,"unit":"mg"},{"name":"Fats","amount":17.1,"unit":"g"},{"name":"Carbohydrates","amount":14.9,"unit":"g"},{"name":"Water","amount":58.7,"unit":"ml"},{"name":"Calcium","amount":41,"unit":"mg"},{"name":"Potassium","amount":289,"unit":"mg"},{"name":"Zinc","amount":1.38,"unit":"mg"},{"name":"Selenium","amount":16.2,"unit":"mg"},{"name":"Vitamin E","amount":1.74,"unit":"mg"},{"name":"Sugars","amount":0.34,"unit":"g"}]};
+const food = {"id":838,"name":"Chicken breast, baked, coated, skin / coating not eaten","servings":[{"id":3017,"amount":100,"unit":"g","nutrients":[{"name":"Protein","amount":29.6,"unit":"g"},{"name":"Fats","amount":5.45,"unit":"g"},{"name":"Carbohydrates","amount":0,"unit":"g"},{"name":"Water","amount":62.8,"unit":"ml"},{"name":"Fiber","amount":0,"unit":"g"},{"name":"Calcium","amount":7,"unit":"mg"},{"name":"Iron","amount":0.44,"unit":"mg"},{"name":"Magnesium","amount":28,"unit":"mg"},{"name":"Phosphorus","amount":224,"unit":"mg"},{"name":"Potassium","amount":352,"unit":"mg"},{"name":"Sodium","amount":353,"unit":"mg"},{"name":"Zinc","amount":0.9,"unit":"mg"},{"name":"Copper","amount":0.046,"unit":"mg"},{"name":"Selenium","amount":30,"unit":"mg"},{"name":"Vitamin A","amount":9,"unit":"μg"},{"name":"Vitamin E","amount":1.06,"unit":"mg"},{"name":"Vitamin D","amount":0,"unit":"μg"},{"name":"Vitamin C","amount":0,"unit":"mg"},{"name":"Vitamin B1","amount":0.086,"unit":"μg"},{"name":"Vitamin B2","amount":0.21,"unit":"μg"},{"name":"Vitamin B3","amount":10.1,"unit":"μg"},{"name":"Vitamin B6","amount":0.855,"unit":"mg"},{"name":"Vitamin B9","amount":7,"unit":"μg"},{"name":"Vitamin B12","amount":0.18,"unit":"μg"},{"name":"Vitamin K","amount":2.2,"unit":"μg"},{"name":"Saturated Fat","amount":1.01,"unit":"g"},{"name":"Unsaturated Fat","amount":3.0700000000000003,"unit":"g"}],"relative":null},{"id":3018,"amount":120,"unit":"1 breast, NS as to size","nutrients":[],"relative":3017},{"id":3019,"amount":135,"unit":"1 large breast","nutrients":[],"relative":3017},{"id":3020,"amount":30,"unit":"1 small or thin slice","nutrients":[],"relative":3017},{"id":3021,"amount":105,"unit":"1 small breast","nutrients":[],"relative":3017},{"id":3022,"amount":135,"unit":"1 cup, cooked, diced","nutrients":[],"relative":3017},{"id":3023,"amount":85,"unit":"1 large or thick slice","nutrients":[],"relative":3017},{"id":3024,"amount":120,"unit":"1 medium breast","nutrients":[],"relative":3017},{"id":3025,"amount":155,"unit":"1 breast quarter (yield after cooking, bone removed)","nutrients":[],"relative":3017},{"id":3026,"amount":28.35,"unit":"1 oz, cooked","nutrients":[],"relative":3017},{"id":3027,"amount":60,"unit":"1 medium slice","nutrients":[],"relative":3017}]};
 </script>
 
 <template>
@@ -66,7 +67,8 @@ const food = {"id":1,"name":"Hummus, commercial","serving_id":1,"serving_base":1
                 <div v-if="searchResults.length > 0" class="my-2">
                     <h2 class="text-gray-500 text-center my-2">Search Results</h2>
                     <div class="border-gray-700 border-2 border-b-0 rounded-t-md overflow-hidden">
-                        <SearchFood v-for="food in searchResults" :food="food"/>
+                        <SearchFood v-for="food in searchResults" :food="food" @select-food="selectedFood = food"/>
+                        <ModalFoodViewer v-if="selectedFood" :food="selectedFood" @close="selectedFood = null"/>
                     </div>
                 </div>
                 <div v-else-if="searchStatus">
