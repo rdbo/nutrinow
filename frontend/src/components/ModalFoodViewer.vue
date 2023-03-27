@@ -21,7 +21,7 @@ const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
                 <div class="flex min-h-full items-end justify-center p-4 text-center items-center">
                     <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4" enter-to="opacity-100 translate-y-0" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0" leave-to="opacity-0 translate-y-4">
                         <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
-                            <div class="h-128 overflow-y-auto">
+                            <div class="h-100 md:h-128 overflow-y-auto">
                                 <div class="bg-white">
                                     <div class="text-center">
                                         <div class="sticky top-0 bg-gray-50 pt-5 px-4 pb-4">
