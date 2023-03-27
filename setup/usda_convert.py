@@ -111,6 +111,7 @@ for filename in [os.path.join(usda_path, f) for f in os.listdir(usda_path) if os
                 portion_unit = portion["portionDescription"]
             if portion_unit == "Quantity not specified": # no description, same as grams (skip)
                 continue
+            portion_unit = portion_unit.replace("'", "''")
             portion_amount = portion["gramWeight"] # relative amount to 1g
             sql_out.write(f"INSERT INTO serving(id, food_id, unit, amount, relative) VALUES({next_serving_id}, {food_id}, '{portion_unit}', {portion_amount}, {relative_serving_id});\n")
 
