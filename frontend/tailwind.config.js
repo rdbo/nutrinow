@@ -14,19 +14,22 @@ module.exports = {
             "1px 1px 0 #606060"
         ]
       },
-        colors: {
-            "primary": {
-                "100": "#99ff55",
-                "200": "#55ff1a"
-            },
-            "secondary": {
-                "100": "#fff3e0",
-                "200": "#f44336"
-            }
-        },
-        fontFamily: {
-            body: ["Arvo"]
-        }
+      colors: {
+          "primary": {
+              "100": "#99ff55",
+              "200": "#55ff1a"
+          },
+          "secondary": {
+              "100": "#fff3e0",
+              "200": "#f44336"
+          }
+      },
+      fontFamily: {
+          body: ["Arvo"]
+      },
+      spacing: {
+        '128': '32rem',
+      }
     },
   },
   plugins: [],
