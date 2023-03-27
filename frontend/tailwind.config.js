@@ -28,7 +28,7 @@ module.exports = {
           body: ["Arvo"]
       },
       spacing: {
-        '128': '32rem',
+        '128': '42rem',
       }
     },
   },

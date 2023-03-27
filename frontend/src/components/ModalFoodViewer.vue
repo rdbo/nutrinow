@@ -22,19 +22,21 @@ const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
                     <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4" enter-to="opacity-100 translate-y-0" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0" leave-to="opacity-0 translate-y-4">
                         <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
                             <div class="h-128 overflow-y-auto">
-                                <div class="bg-white px-4 pt-5 pb-4">
-                                    <div>
-                                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
-                                            <ExclamationCircleIcon class="h-6 w-6 text-green-600" aria-hidden="true" />
+                                <div class="bg-white pb-4">
+                                    <div class="text-center">
+                                        <div class="sticky top-0 bg-gray-50 pt-5 px-4 pb-4">
+                                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                                                <ExclamationCircleIcon class="h-6 w-6 text-green-600" aria-hidden="true" />
+                                            </div>
+                                            <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900 my-2">{{ food.name }}</DialogTitle>
+                                            <div class="inline-flex justify-center items-center">
+                                                <input v-model="servingAmount" class="text-center h-full w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
+                                                <ServingDropdown :servings="food.servings" :curServingIndex="curServingIndex"/>
+                                            </div>
                                         </div>
-                                        <div class="mt-3 text-center">
-                                            <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900">Food Viewer</DialogTitle>
+                                        <div class="mt-3 px-4">
                                             <div class="mt-2 text-lg">
-                                                <div class="inline-flex justify-center items-center">
-                                                    <input v-model="servingAmount" class="h-full w-32 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
-                                                    <ServingDropdown :servings="food.servings" :curServingIndex="curServingIndex"/>
-                                                </div>
-                                                <p class="text-gray-500">Name: <span class="text-gray-700 font-bold">{{ food.name }}</span></p>
+                                                <p class="text-gray-500">Name: <span class="text-gray-700 font-bold"></span></p>
                                                 <div>
                                                     <div v-for="nutrient in food.servings[curServingIndex].nutrients">
                                                         <p>{{ nutrient.name }}</p>
@@ -44,7 +46,7 @@ const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
                                         </div>
                                     </div>
                                 </div>
-                                <div class="bg-gray-50 px-4 py-3 absolute w-full bottom-0">
+                                <div class="bg-gray-50 px-4 py-3 sticky w-full bottom-0">
                                     <button type="button" class="inline-flex w-full justify-center rounded-md px-3 py-2 text-lg font-semibold text-white shadow-sm bg-green-400 hover:bg-green-600" @click="$emit('add-food')">Add to Meal</button>
                                     <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" @click="$emit('close')" ref="cancelButtonRef">Close</button>
                                 </div>
