@@ -18,7 +18,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edi
         </div>
 
         <transition enter-active-class="transition ease-out duration-100" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
-            <MenuItems class="absolute left-0 z-10 w-full w-28 mt-2 origin-top-right rounded-md bg-white shadow-lg ring-2 ring-black ring-opacity-10 focus:outline-none">
+            <MenuItems class="absolute left-0 z-10 w-full w-28 max-h-96 overflow-y-auto mt-2 origin-top-right rounded-md bg-white shadow-lg ring-2 ring-black ring-opacity-10 focus:outline-none">
                 <div class="py-1">
                     <MenuItem v-for="(serving, index) in servings" v-slot="{ active }">
                         <div @click="$emit('new-diet', index)" class="cursor-pointer" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">{{ serving.unit }}</div>
