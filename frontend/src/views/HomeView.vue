@@ -1,6 +1,5 @@
 <script setup>
 import Welcome from "../components/Welcome.vue";
-import FoodEditor from "../components/FoodEditor.vue";
 import Dashboard from "../components/Dashboard.vue";
 
 const props = defineProps(["session_id"]);

@@ -1,6 +1,6 @@
 <script setup>
-import { PlusIcon } from "@heroicons/vue/20/solid";
 import { getDisplayNutrients } from "../composables/foods.js";
+import { PlusIcon } from "@heroicons/vue/20/solid";
 
 const props = defineProps(["food"]);
 const displayNutrients = getDisplayNutrients(props.food.servings[0].nutrients);
