@@ -227,6 +227,8 @@ function getMealById(meal_id) {
 updateUserInfo();
 updateDiets();
 updateNutrients();
+// unset cached meal ID (for adding foods)
+sessionStorage.removeItem("meal_id");
 </script>
 
 <template>
