@@ -29,10 +29,13 @@ const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
                                                 <ExclamationCircleIcon class="h-6 w-6 text-green-600" aria-hidden="true" />
                                             </div>
                                             <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900 my-2">{{ food.name }}</DialogTitle>
-                                            <div class="inline-flex justify-center items-center">
-                                                <input v-model="servingAmount" class="text-center h-full w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
-                                                <ServingDropdown :servings="food.servings" :curServingIndex="curServingIndex"/>
+                                            <div class="inline-flex">
+                                                <div class="flex flex-col">
+                                                    <input v-model="servingAmount" class="grow text-center w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
+                                                </div>
+                                                <ServingDropdown @update-cur-serving="(index) => curServingIndex = index" :servings="food.servings" :curServingIndex="curServingIndex"/>
                                             </div>
+
                                         </div>
                                         <div>
                                             <div class="text-lg">

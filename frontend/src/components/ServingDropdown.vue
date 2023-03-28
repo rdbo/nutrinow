@@ -3,7 +3,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { ChevronDownIcon, PlusCircleIcon, XCircleIcon, PencilSquareIcon } from '@heroicons/vue/20/solid';
 
 const props = defineProps(["servings", "curServingIndex"]);
-const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edit-cur-diet"]);
+const emit = defineEmits(["update-cur-serving"]);
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edi
             <MenuItems class="absolute left-0 z-10 w-full w-28 max-h-96 overflow-y-auto mt-2 origin-top-right rounded-md bg-white shadow-lg ring-2 ring-black ring-opacity-10 focus:outline-none">
                 <div class="py-1">
                     <MenuItem v-for="(serving, index) in servings" v-slot="{ active }">
-                        <div @click="$emit('new-diet', index)" class="cursor-pointer" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">{{ serving.unit }}</div>
+                        <div @click="$emit('update-cur-serving', index)" class="cursor-pointer" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">{{ serving.unit }}</div>
                     </MenuItem>
                 </div>
             </MenuItems>
