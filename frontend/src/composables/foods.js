@@ -1,3 +1,22 @@
+export function getServingNutrients(servings, index) {
+    let serving = servings[index];
+    if (!serving.relative)
+        return serving.nutrients;
+
+    for (let i = 0; i < servings.length; ++i) {
+        let base_serving = servings[i];
+        if (base_serving.id == serving.relative) {
+            let nutrients = base_serving.nutrients;
+            for (let j = 0; j < nutrients.length; ++j) {
+                nutrients[j].amount *= serving.amount / base_serving.amount; // calculate relative nutrient amount
+            }
+            return nutrients;
+        }
+    }
+
+    return [];
+}
+
 export function getNutrientsFromMealFood(food) {
     let nutrient_ratio = food.serving_amount / food.serving_base; // proportionally calculate nutrient amount from serving base amount
     let nutrient_list = [];

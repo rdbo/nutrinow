@@ -1,13 +1,19 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import ServingDropdown from "./ServingDropdown.vue";
+import { getServingNutrients } from "../composables/foods.js";
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline';
-import ServingDropdown from "./ServingDropdown.vue";
 
 const props = defineProps(["food"]);
 const emit = defineEmits(["close", "add-food"]);
 const curServingIndex = ref(0);
 const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
+const nutrientList = computed(() => {
+    // TODO: Fix weird nutrition values
+    console.log(props.food);
+    return getServingNutrients(props.food.servings, curServingIndex.value);
+});
 </script>
 
 <template>
@@ -44,13 +50,13 @@ const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
                                                         <thead class="border-y-2 border-gray-400">
                                                             <tr>
                                                                 <th class="border-r-2 border-gray-400">Nutrient</th>
-                                                                <th>Amount (per {{ servingAmount }}{{ food.servings[curServingIndex].unit  }})</th>
+                                                                <th>Amount (per {{ servingAmount }} "{{ food.servings[curServingIndex].unit  }}")</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <tr v-for="nutrient in food.servings[curServingIndex].nutrients" class="border-gray-400 border-b-2">
+                                                            <tr v-for="nutrient in nutrientList" class="border-gray-400 border-b-2">
                                                                 <td class="border-r-2 border-gray-400">{{ nutrient.name }}</td>
-                                                                <td>{{ Number(nutrient.amount * (servingAmount / food.servings[curServingIndex].amount)).toFixed(1) }}{{ nutrient.unit }}</td>
+                                                                <td>{{ Number(nutrient.amount * (servingAmount / (food.servings[curServingIndex].relative ? 1 : food.servings[curServingIndex].amount))).toFixed(1) }}{{ nutrient.unit }}</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
