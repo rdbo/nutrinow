@@ -638,7 +638,7 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
         let meal_name : String = meal.try_get("name").unwrap();
 
         let query_foods = async {
-            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
+            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit, serving.relative AS relative FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
                 .bind(meal_id)
                 .fetch_all(&mut *db)
                 .await
@@ -654,15 +654,38 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
             let food_id : i32 = food.try_get("id").unwrap();
             let food_name : String = food.try_get("name").unwrap();
             let serving_id : i32 = food.try_get("serving_id").unwrap();
-            let serving_base : f64 = food.try_get("serving_base").unwrap();
+            let mut serving_base : f64 = food.try_get("serving_base").unwrap();
             let serving_amount : f64 = food.try_get("amount").unwrap();
             let serving_unit : String = food.try_get("unit").unwrap();
+            let serving_relative : Result<i32, _> = food.try_get("relative");
+            let mut serving_rel_amount : f64 = 0.0;
+
+            if let Ok(_) = serving_relative {
+                serving_base = 1.0;
+
+                let row = match sqlx::query("SELECT amount FROM serving WHERE serving.id = $1")
+                    .bind(serving_id)
+                    .fetch_one(&mut *db)
+                    .await {
+                    Ok(r) => r,
+                    Err(_) => continue
+                };
+
+                serving_rel_amount = row.try_get("amount").unwrap();
+            }
 
             let query_nutrients = async {
-                sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
-                    .bind(serving_id)
-                    .fetch_all(&mut *db)
-                    .await
+                if let Ok(id) = serving_relative {
+                    sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit, serving.amount AS serving_base_amount FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
+                        .bind(id)
+                        .fetch_all(&mut *db)
+                        .await
+                } else {
+                    sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
+                        .bind(serving_id)
+                        .fetch_all(&mut *db)
+                        .await
+                }
             };
 
             let nutrients = match query_nutrients.await {
@@ -673,8 +696,13 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
             let mut base_nutrients : Vec<ServingNutrient> = vec![];
             for nutrient in nutrients {
                 let nutrient_name : String = nutrient.try_get("name").unwrap();
-                let nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
+                let mut nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
                 let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+
+                if let Ok(_) = serving_relative {
+                    let serving_base_amount : f64 = nutrient.try_get("serving_base_amount").unwrap();
+                    nutrient_amount *= serving_rel_amount / serving_base_amount;
+                }
 
                 let nutrient_info = ServingNutrient {
                     name: nutrient_name,
