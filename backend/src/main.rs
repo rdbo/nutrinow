@@ -878,6 +878,19 @@ async fn api_delete_meal(data : Form<DeleteMealForm>, cookies : &CookieJar<'_>, 
         return Json(DeleteMealResponse::err("User does not own diet"));
     }
 
+    // TODO: Make function to delete meal
+    let query_delete_foods = async {
+        sqlx::query("DELETE FROM meal_serving WHERE meal_id = $1")
+            .bind(data.meal_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_delete_foods.await {
+        Ok(_) => {  },
+        Err(_) => return Json(DeleteMealResponse::err("Failed to delete meal servings"))
+    };
+
     let query_delete_meal = async {
         sqlx::query("DELETE FROM meal WHERE id = $1")
             .bind(data.meal_id)
