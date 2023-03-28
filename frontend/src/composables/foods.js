@@ -6,7 +6,7 @@ export function getServingNutrients(servings, index) {
     for (let i = 0; i < servings.length; ++i) {
         let base_serving = servings[i];
         if (base_serving.id == serving.relative) {
-            let nutrients = base_serving.nutrients;
+            let nutrients = JSON.parse(JSON.stringify(base_serving.nutrients)); // deep copy array to avoid overwriting the original values
             for (let j = 0; j < nutrients.length; ++j) {
                 nutrients[j].amount *= serving.amount / base_serving.amount; // calculate relative nutrient amount
             }

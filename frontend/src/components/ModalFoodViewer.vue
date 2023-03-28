@@ -10,8 +10,6 @@ const emit = defineEmits(["close", "add-food"]);
 const curServingIndex = ref(0);
 const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
 const nutrientList = computed(() => {
-    // TODO: Fix weird nutrition values
-    console.log(props.food);
     return getServingNutrients(props.food.servings, curServingIndex.value);
 });
 </script>
