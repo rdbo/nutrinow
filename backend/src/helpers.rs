@@ -58,3 +58,37 @@ pub async fn user_id_from_cookies(cookies : &CookieJar<'_>, db : &mut PoolConnec
     Ok(user_id)
 }
 
+pub async fn diet_owner_id(diet_id : i32, db : &mut PoolConnection<Postgres>) -> Result<i32, &'static str> {
+    let query_diet_owner_id = async {
+        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
+            .bind(diet_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let diet_owner_id = match query_diet_owner_id.await {
+        Ok(r) => r,
+        Err(_) => return Err("Failed to query diet owner id")
+    };
+
+    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
+
+    Ok(diet_owner_id)
+}
+
+pub async fn meal_owner_id(meal_id : i32, db : &mut PoolConnection<Postgres>) -> Result<i32, &'static str> {
+    let query_diet_owner_id = async {
+        sqlx::query("SELECT user_id FROM meal JOIN diet ON diet.id = meal.diet_id WHERE meal.id = $1")
+            .bind(meal_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let diet_owner_id = match query_diet_owner_id.await {
+        Ok(r) => r,
+        Err(_) => return Err("Failed to query diet owner id")
+    };
+    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
+
+    Ok(diet_owner_id)
+}

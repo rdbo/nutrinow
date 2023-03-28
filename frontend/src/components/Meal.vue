@@ -1,9 +1,16 @@
 <script setup>
+import { useRouter } from "vue-router";
 import MealFood from "./MealFood.vue";
 import { XCircleIcon } from "@heroicons/vue/20/solid";
 
+const router = useRouter();
 const emit = defineEmits(["delete-meal"]);
 const props = defineProps(["meal"]);
+
+function addFood() {
+    sessionStorage.setItem("meal_id", props.meal.id);
+    router.push({ name: "foods" });
+}
 </script>
 
 <template>
@@ -18,7 +25,7 @@ const props = defineProps(["meal"]);
         <MealFood v-for="food in meal.foods" :food="food"/>
     </div>
     <div class="flex justify-center items-center">
-        <button id="btn_add_food" class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>
+        <button @click="addFood" id="btn_add_food" class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>
     </div>
 </div>
 </template>

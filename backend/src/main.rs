@@ -29,7 +29,7 @@ use std::path::PathBuf;
 
 mod helpers;
 
-use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str};
+use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id};
 
 
 #[derive(Database)]
@@ -397,18 +397,10 @@ async fn api_diet_nutrition(diet_id : i32, cookies : &CookieJar<'_>, mut db : Co
         Err(s) => return Json(DietNutritionResponse::err(s))
     };
 
-    let query_diet_owner_id = async {
-        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
-            .bind(diet_id)
-            .fetch_one(&mut *db)
-            .await
+    let diet_owner_id = match diet_owner_id(diet_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DietNutritionResponse::err(s))
     };
-
-    let diet_owner_id = match query_diet_owner_id.await {
-        Ok(r) => r,
-        Err(_) => return Json(DietNutritionResponse::err("Failed to query diet owner id"))
-    };
-    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
 
     if user_id != diet_owner_id {
         return Json(DietNutritionResponse::err("User does not own diet"));
@@ -473,18 +465,10 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
         Err(s) => return Json(DeleteDietResponse::err(s))
     };
 
-    let query_diet_owner_id = async {
-        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
-            .bind(data.diet_id)
-            .fetch_one(&mut *db)
-            .await
+    let diet_owner_id = match diet_owner_id(data.diet_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteDietResponse::err(s))
     };
-
-    let diet_owner_id = match query_diet_owner_id.await {
-        Ok(r) => r,
-        Err(_) => return Json(DeleteDietResponse::err("failed to query diet owner id"))
-    };
-    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
 
     if user_id != diet_owner_id {
         return Json(DeleteDietResponse::err("user does not own diet"));
@@ -802,18 +786,10 @@ async fn api_add_meal(data : Form<AddMealForm<'_>>, cookies : &CookieJar<'_>, mu
     };
 
     // TODO: Make querying diet owner a function
-    let query_diet_owner_id = async {
-        sqlx::query("SELECT user_id FROM diet WHERE id = $1")
-            .bind(data.diet_id)
-            .fetch_one(&mut *db)
-            .await
+    let diet_owner_id = match diet_owner_id(data.diet_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(AddMealResponse::err(s))
     };
-
-    let diet_owner_id = match query_diet_owner_id.await {
-        Ok(r) => r,
-        Err(_) => return Json(AddMealResponse::err("Failed to query diet owner id"))
-    };
-    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
 
     if user_id != diet_owner_id {
         return Json(AddMealResponse::err("User does not own diet"));
@@ -865,19 +841,10 @@ async fn api_delete_meal(data : Form<DeleteMealForm>, cookies : &CookieJar<'_>, 
         Err(s) => return Json(DeleteMealResponse::err(s))
     };
 
-    // TODO: Make querying diet owner a function
-    let query_diet_owner_id = async {
-        sqlx::query("SELECT user_id FROM meal JOIN diet ON diet.id = meal.diet_id WHERE meal.id = $1")
-            .bind(data.meal_id)
-            .fetch_one(&mut *db)
-            .await
+    let diet_owner_id = match meal_owner_id(data.meal_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteMealResponse::err(s))
     };
-
-    let diet_owner_id = match query_diet_owner_id.await {
-        Ok(r) => r,
-        Err(_) => return Json(DeleteMealResponse::err("Failed to query diet owner id"))
-    };
-    let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
 
     if user_id != diet_owner_id {
         return Json(DeleteMealResponse::err("User does not own diet"));
@@ -1080,6 +1047,61 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     Json(FoodSearchResponse::ok(food_list))
 }
 
+// Add to Meal Request
+#[derive(FromForm)]
+struct AddMealServingForm {
+    meal_id : i32,
+    serving_id : i32,
+    amount : f64
+}
+
+#[derive(Serialize)]
+struct AddMealServingResponse {
+    err : &'static str
+}
+
+impl AddMealServingResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
+#[post("/add_meal_serving", data = "<data>")]
+async fn api_add_meal_serving(data : Form<AddMealServingForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<AddMealServingResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(AddMealServingResponse::err(s))
+    };
+
+    let meal_owner_id = match meal_owner_id(data.meal_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(AddMealServingResponse::err(s))
+    };
+
+    if meal_owner_id != user_id {
+        return Json(AddMealServingResponse::err("User does not own meal"));
+    }
+
+    // if the serving doesn't exist, this function will fail
+    let query_add_meal_serving = async {
+        sqlx::query("INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES ($1, $2, $3)")
+            .bind(data.meal_id)
+            .bind(data.serving_id)
+            .bind(data.amount)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_add_meal_serving.await {
+        Ok(_) => Json(AddMealServingResponse::ok()),
+        Err(_) => Json(AddMealServingResponse::err("Failed to add serving to meal"))
+    }
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -1093,5 +1115,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving])
 }

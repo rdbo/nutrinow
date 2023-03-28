@@ -24,7 +24,7 @@ const displayNutrients = getDisplayNutrients(nutrients);
             <PencilSquareIcon class="w-6"/>
         </button>
         <div class="flex items-center justify-center text-center">
-            <p class="text-lg my-2 mx-2">{{ food.name }} ({{ food.serving_amount }}{{ food.serving_unit }})</p>
+            <p class="text-lg my-2 mx-2">{{ food.name }} (<span class="font-bold">{{ food.serving_amount }}</span> <span class="italic">{{ food.serving_unit }}</span>)</p>
         </div>
     </div>
     <div class="text-gray-500 flex text-base">

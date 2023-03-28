@@ -73,7 +73,7 @@ function updateCurServing(index) {
                                     </div>
                                 </div>
                                 <div class="bg-gray-50 px-4 py-3 sticky w-full bottom-0">
-                                    <button type="button" class="inline-flex w-full justify-center rounded-md px-3 py-2 text-lg font-semibold text-white shadow-sm bg-green-400 hover:bg-green-600" @click="$emit('add-food')">Add to Meal</button>
+                                    <button type="button" class="inline-flex w-full justify-center rounded-md px-3 py-2 text-lg font-semibold text-white shadow-sm bg-green-400 hover:bg-green-600" @click="$emit('add-food', food.servings[curServingIndex].id, servingAmount)">Add to Meal</button>
                                     <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" @click="$emit('close')" ref="cancelButtonRef">Close</button>
                                 </div>
                             </div>
