@@ -590,10 +590,22 @@ async fn api_edit_diet(data : Form<EditDietForm<'_>>, cookies : &CookieJar<'_>, 
 
 // Meals Request
 #[derive(Serialize)]
+struct MealFoodInfo {
+    id: i32,
+    name : String,
+    meal_serving_id : i32,
+    serving_id : i32,
+    serving_base : f64,
+    serving_amount : f64,
+    serving_unit : String,
+    base_nutrients : Vec<ServingNutrient>
+}
+
+#[derive(Serialize)]
 struct MealInfo {
     id : i32,
     name : String,
-    foods : Vec<FoodInfo>
+    foods : Vec<MealFoodInfo>
 }
 
 #[derive(Serialize)]
@@ -638,7 +650,7 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
         let meal_name : String = meal.try_get("name").unwrap();
 
         let query_foods = async {
-            sqlx::query("SELECT food.id AS id, food.name AS name, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit, serving.relative AS relative FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
+            sqlx::query("SELECT food.id AS id, food.name AS name, meal_serving.id AS meal_serving_id, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit, serving.relative AS relative FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
                 .bind(meal_id)
                 .fetch_all(&mut *db)
                 .await
@@ -649,10 +661,11 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
             Err(_) => continue
         };
 
-        let mut foods_info : Vec<FoodInfo> = vec![];
+        let mut foods_info : Vec<MealFoodInfo> = vec![];
         for food in foods {
             let food_id : i32 = food.try_get("id").unwrap();
             let food_name : String = food.try_get("name").unwrap();
+            let meal_serving_id : i32 = food.try_get("meal_serving_id").unwrap();
             let serving_id : i32 = food.try_get("serving_id").unwrap();
             let mut serving_base : f64 = food.try_get("serving_base").unwrap();
             let serving_amount : f64 = food.try_get("amount").unwrap();
@@ -712,9 +725,10 @@ async fn api_meals(diet_id : i32, cookies : &CookieJar<'_>, mut db : Connection<
                 base_nutrients.push(nutrient_info);
             }
 
-            let food = FoodInfo {
+            let food = MealFoodInfo {
                 id: food_id,
                 name: food_name,
+                meal_serving_id,
                 serving_id,
                 serving_base,
                 serving_amount,

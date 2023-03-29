@@ -4,7 +4,7 @@ import MealFood from "./MealFood.vue";
 import { XCircleIcon } from "@heroicons/vue/20/solid";
 
 const router = useRouter();
-const emit = defineEmits(["delete-meal"]);
+const emit = defineEmits(["delete-meal", "delete-meal-food", "edit-meal-food", "view-meal-food"]);
 const props = defineProps(["meal"]);
 
 function addFood() {
@@ -22,7 +22,7 @@ function addFood() {
         </button>
     </div>
     <div>
-        <MealFood v-for="food in meal.foods" :food="food"/>
+        <MealFood v-for="food in meal.foods" :food="food" @delete-meal-food="$emit('delete-meal-food', food)" @edit-meal-food="$emit('edit-meal-food', food)" @view-meal-food="$emit('view-meal-food', food)"/>
     </div>
     <div class="flex justify-center items-center">
         <button @click="addFood" id="btn_add_food" class="text-center bg-red-300 px-8 py-4 my-2 border-gray-700 border-2 rounded-md text-xl">Add Food</button>

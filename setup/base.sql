@@ -85,9 +85,11 @@ CREATE TABLE meal (
 );
 
 CREATE TABLE meal_serving (
+    id SERIAL,
     meal_id SERIAL,
     serving_id SERIAL,
     amount FLOAT NOT NULL,
+    PRIMARY KEY(id),
     FOREIGN KEY (meal_id) REFERENCES meal(id),
     FOREIGN KEY (serving_id) REFERENCES serving(id)
 );

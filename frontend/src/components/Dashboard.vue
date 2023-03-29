@@ -35,7 +35,6 @@ function updateCurDiet(index) {
         }
 
         meals.value = response.data.meals;
-        console.log(meals.value);
     })
     .catch(function (err) {
         // TODO: Handle error
@@ -225,6 +224,20 @@ function getMealById(meal_id) {
     }
 }
 
+function deleteMealFood(food) {
+    console.log(food);
+}
+
+function editMealFood(food) {
+    console.log(food);
+
+}
+
+function viewMealFood(food) {
+    console.log(food);
+
+}
+
 updateUserInfo();
 updateDiets();
 updateNutrients();
@@ -243,7 +256,7 @@ sessionStorage.removeItem("meal_id");
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
-                <Meal @delete-meal="(id) => deleteMealId = id" v-for="meal in meals" :meal="meal" class="mt-8"/>
+                <Meal v-for="meal in meals" @delete-meal="(id) => deleteMealId = id" @delete-meal-food="deleteMealFood" @edit-meal-food="editMealFood" @view-meal-food="viewMealFood" :meal="meal" class="mt-8"/>
                 <button id="btn_add_meal" @click="showAddMeal = true" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
