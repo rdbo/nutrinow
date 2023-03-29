@@ -54,7 +54,7 @@ function updateCurServing(index) {
                                             <div class="text-lg">
                                                 <div>
                                                     <table class="w-full text-center bg-orange-100">
-                                                        <thead class="border-y-2 border-gray-400">
+                                                        <thead class="border-y-2 border-gray-400 bg-orange-200">
                                                             <tr>
                                                                 <th class="border-r-2 border-gray-400">Nutrient</th>
                                                                 <th>Amount (per {{ servingAmount }} "{{ food.servings[curServingIndex].unit  }}")</th>
