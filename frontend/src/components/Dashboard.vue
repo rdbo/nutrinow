@@ -246,7 +246,7 @@ sessionStorage.removeItem("meal_id");
 </script>
 
 <template>
-    <div class="mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
+    <div class="mx-1 sm:mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
         <h1 class="text-2xl max-md:text-center">Dashboard - {{ userInfo.name }}</h1>
         <div>
             <div class="my-4">

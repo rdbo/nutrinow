@@ -11,7 +11,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edi
         <div>
             <MenuButton class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-lg font-semibold text-gray-900 shadow-sm ring-2 ring-inset ring-gray-300 hover:bg-gray-50 md:w-56">
                 <p v-if="diets.length > 0">{{ diets[curDietIndex].name }}</p>
-                <p v-else class="text-gray-300">Control Menu</p>
+                <p v-else class="text-gray-300">Dashboard Menu</p>
                 <div class="flex items-center">
                     <ChevronDownIcon class="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>

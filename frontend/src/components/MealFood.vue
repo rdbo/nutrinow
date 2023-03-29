@@ -17,11 +17,11 @@ const displayNutrients = getDisplayNutrients(nutrients);
             <PencilSquareIcon class="w-6"/>
         </button>
     </div>
-    <div @click="$emit('view-meal-food')" class="flex justify-between grow">
+    <div @click="$emit('view-meal-food')" class="flex flex-col sm:flex-row sm:justify-between grow">
         <div class="flex items-center justify-center text-center text-gray-700">
             <p class="text-lg my-2 mx-2">{{ food.name }} (<span class="font-bold">{{ food.serving_amount }}</span> <span class="italic">{{ food.serving_unit }}</span>)</p>
         </div>
-        <div class="mx-2 my-2 flex text-gray-500 text-base">
+        <div class="mx-2 my-2 flex text-gray-500 text-base justify-center">
             <div class="mx-4 text-right">
                 <div v-for="nutrient in displayNutrients">
                     <p>{{ nutrient.name }}</p>
