@@ -34,7 +34,7 @@ setInterval(updateSession, 100);
     <div class="min-h-screen flex flex-col">
         <header class="sticky top-0 z-50">
             <!-- click overlay for mobile -->
-            <div @click="showNavItems = false" id="nav_overlay" :class="{ 'opacity-40': showNavItems, 'hidden': !showNavItems }" class="opacity-0 md:hidden absolute top-0 h-screen w-screen bg-black"></div>
+            <div @click="showNavItems = false" id="nav_overlay" :class="[showNavItems ? 'opacity-40' : 'opacity-0', { 'hidden': !showNavItems }]" class="md:hidden absolute top-0 h-screen w-screen bg-black"></div>
 
 	    <nav class="relative bg-gray-100 border-gray-200 md:static">
 		<div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto md:flex-col">
