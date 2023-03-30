@@ -51,14 +51,14 @@ setInterval(updateSession, 100);
                                 <li>
                                     <RouterLink :session_id="test" :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
                                 </li>
-                                <li>
+                                <li v-if="!session_id">
                                     <RouterLink :session_id="test" :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
                                 </li>
-                                <li>
+                                <li v-if="!session_id">
                                     <RouterLink :session_id="test" :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
                                 </li>
                                 <li v-if="session_id" @click="logout">
-                                    <button>Logout</button>
+                                    <button class="nav-item">Logout</button>
                                 </li>
                             </ul>
                         </div>
