@@ -34,7 +34,7 @@ setInterval(updateSession, 100);
     <div class="min-h-screen flex flex-col">
         <header class="sticky top-0 z-50">
             <!-- click overlay for mobile -->
-            <div @click="showNavItems = false" id="nav_overlay" :class="[showNavItems ? 'opacity-40' : 'opacity-0', { 'hidden': !showNavItems }]" class="md:hidden absolute top-0 h-screen w-screen bg-black"></div>
+            <div @click="showNavItems = false" :class="[showNavItems ? 'show-nav-overlay' : 'hide-nav-overlay']" class="md:hidden absolute top-0 h-screen w-screen bg-black"></div>
 
 	    <nav class="relative bg-gray-100 border-gray-200 md:static">
 		<div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto md:flex-col">
@@ -100,12 +100,8 @@ li {
     @apply bg-lime-400 text-gray-800 md:bg-transparent md:text-lime-500 md:border-lime-400;
 }
 
-#nav_overlay {
-    transition: 0.2 all ease-in-out;
-}
-
 /* TODO: Ensure that 'max-width' is always the same as the size of an 'md' screen */
-/* TODO: Only play scale down animation after scale up */
+/* TODO: Only play animations after the menu has been already activated (not on page load) */
 @media (max-width: 768px) {
     .show-nav-items {
         transform-origin: top;
@@ -116,11 +112,18 @@ li {
         transform-origin: top;
         animation: nav-items-scale-down 0.4s ease-in-out forwards;
     }
+
+    .show-nav-overlay {
+        animation: nav-overlay-fade-in 0.4s ease-in-out forwards;
+    }
+
+    .hide-nav-overlay {
+        animation: nav-overlay-fade-out 0.4s ease-in-out forwards;
+    }
 }
 
 @keyframes nav-items-scale-up {
     0% {
-        display: block;
         transform: scale(100%, 0%);
     }
     100% {
@@ -134,7 +137,30 @@ li {
     }
     100% {
         transform: scale(100%, 0%);
-        display: hidden;
+    }
+}
+
+@keyframes nav-overlay-fade-in {
+    0% {
+        transform: scale(100%);
+        display: block;
+        opacity: 0%;
+    }
+    100% {
+        opacity: 40%;
+    }
+}
+
+@keyframes nav-overlay-fade-out {
+    0% {
+        opacity: 40%;
+    }
+    99% {
+        opacity: 0%;
+        transform: scale(100%);
+    }
+    100% {
+        transform: scale(0%);
     }
 }
 </style>
