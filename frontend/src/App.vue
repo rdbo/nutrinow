@@ -94,6 +94,6 @@ li {
 }
 
 .nav-item.router-link-active {
-    @apply bg-lime-400 text-gray-800 md:bg-transparent font-bold md:text-lime-500 md:border-lime-400;
+    @apply bg-lime-400 text-gray-800 md:bg-transparent md:text-lime-500 md:border-lime-400;
 }
 </style>
