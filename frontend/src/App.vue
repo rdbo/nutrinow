@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink, RouterView } from "vue-router";
+import { Bars3Icon } from "@heroicons/vue/20/solid";
 import axios from "axios";
 
 const session_id = ref(null);
+const showNavItems = ref(false); // show navigation items on mobile
 
 function logout() {
     let delete_session = () => {
@@ -31,18 +33,36 @@ setInterval(updateSession, 100);
 <template>
     <div class="min-h-screen flex flex-col">
         <header class="sticky top-0 z-50">
-                <nav class="flex font-bold bg-gray-100 items-center flex-col md:flex-row">
+	    <nav class="bg-gray-100 border-gray-200">
+		<div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                     <RouterLink :to="{ name: 'home' }" class="text-4xl px-2 drop-shadow-bold-sm flex items-center"><img class="w-16 mr-1" src="@/assets/imgs/apple.svg"/> <span class="text-primary-100">Nutri</span><span class="text-secondary-100">Now</span></RouterLink>
-                    <div class="grow text-lg flex justify-center">
-                        <RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item">Home</RouterLink>
-                        <RouterLink :to="{ name: 'about' }" class="nav-item">About</RouterLink>
-                        <RouterLink :to="{ name: 'foods' }" class="nav-item">Foods</RouterLink>
-                        <!-- TODO: Groud menus that don't show when user is logged in and vice-versa -->
-                        <RouterLink v-if="!session_id" :to="{ name: 'login' }" class="nav-item">Login</RouterLink>
-                        <RouterLink v-if="!session_id" :to="{ name: 'register' }" class="nav-item">Register</RouterLink>
-                        <button v-if="session_id" @click="logout" class="nav-item">Logout</button>
-                    </div>
-                </nav>
+		    <button @click="showNavItems = !showNavItems" data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="navbar-default" aria-expanded="false">
+                        <Bars3Icon class="w-6 h-6"/>
+		    </button>
+                    <div :class="{ 'hidden': !showNavItems }" class="w-full md:block md:w-auto text-xl" id="navbar-default">
+			<ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-gray-100">
+			    <li>
+				<RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
+			    </li>
+			    <li>
+				<RouterLink :session_id="test" :to="{ name: 'about' }" class="nav-item" aria-current="page">About</RouterLink>
+			    </li>
+			    <li>
+				<RouterLink :session_id="test" :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
+			    </li>
+			    <li>
+				<RouterLink :session_id="test" :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
+			    </li>
+			    <li>
+				<RouterLink :session_id="test" :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
+			    </li>
+			    <li v-if="session_id" @click="logout">
+				<button>Logout</button>
+			    </li>
+			</ul>
+		    </div>
+		</div>
+	    </nav>
         </header>
 
         <main class="grow flex flex-col">
@@ -53,21 +73,16 @@ setInterval(updateSession, 100);
     <footer class="py-4 bg-gray-300 flex flex-col justify-center items-center text-center">
         <p>Copyright © Rdbo</p>
         <p>All Rights Reserved</p>
-        <p>This website is licensed under the <a class="text-blue-500" href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPLv3.0</a></p>
+        <p>This website is licensed under the <a class="text-green-500" href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPLv3.0</a></p>
     </footer>
 </template>
 
 <style scoped>
 .nav-item {
-    @apply px-4 py-4 text-gray-700 border-b-8 border-gray-100 uppercase;
-    transition: all 0.2s ease-in-out;
-}
-
-.nav-item:hover {
-    @apply text-gray-500 border-gray-200;
+    @apply block py-2 pl-3 pr-4 text-gray-700 rounded md:p-0;
 }
 
 .nav-item.router-link-active {
-    @apply text-gray-700 border-b-8 border-primary-100;
+    @apply bg-lime-400 text-gray-800 md:bg-transparent md:text-lime-400;
 }
 </style>
