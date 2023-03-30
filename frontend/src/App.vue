@@ -57,8 +57,8 @@ setInterval(updateSession, 100);
                                 <li v-if="!session_id">
                                     <RouterLink :session_id="test" :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
                                 </li>
-                                <li v-if="session_id" @click="logout">
-                                    <div class="cursor-pointer nav-item">Logout</div>
+                                <li v-if="session_id">
+                                    <div @click="logout" class="cursor-pointer nav-item">Logout</div>
                                 </li>
                             </ul>
                         </div>
