@@ -40,8 +40,8 @@ setInterval(updateSession, 100);
                         <button @click="showNavItems = !showNavItems" data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 ml-3 mr-4 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="navbar-default" aria-expanded="false">
                             <Bars3Icon class="w-6 h-6"/>
                         </button>
-                        <div :class="{ 'hidden': !showNavItems }" class="w-full md:flex md:w-auto text-xl md:flex md:flex-col" id="navbar-default">
-                            <ul class="font-medium flex flex-col p-4 md:p-0 md:px-4 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-gray-100 md:grow">
+                        <div :class="{ 'hidden': !showNavItems }" class="w-full md:flex md:w-auto text-lg md:flex md:flex-col" id="navbar-default">
+                            <ul class="font-medium flex flex-col p-4 md:p-0 md:px-4 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-4 md:mt-0 md:border-0 md:bg-gray-100 md:grow">
                                 <li>
                                     <RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
                                 </li>
@@ -85,7 +85,12 @@ li {
 }
 
 .nav-item {
-    @apply block py-2 pl-3 pr-4 text-gray-700 rounded md:rounded-none md:p-0 md:px-2 md:grow md:flex md:items-center md:border-b-8 md:border-gray-100;
+    @apply uppercase block py-2 pl-3 pr-4 text-gray-700 rounded md:rounded-none md:p-0 md:px-2 md:grow md:flex md:items-center md:border-b-8 md:border-gray-100;
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-item:hover {
+    @apply border-gray-300 text-gray-500;
 }
 
 .nav-item.router-link-active {
