@@ -43,7 +43,7 @@ setInterval(updateSession, 100);
                         <button @click="showNavItems = !showNavItems" data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 ml-3 mr-4 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="navbar-default" aria-expanded="false">
                             <Bars3Icon class="w-6 h-6"/>
                         </button>
-                        <div :class="{ 'hidden': !showNavItems }" class="p-4 bg-gray-100 w-full absolute top-full md:p-0 md:static md:flex md:w-auto text-lg md:flex md:flex-col" id="navbar-default">
+                        <div :class="[showNavItems ? 'show-nav-items' : 'hide-nav-items']" class="p-4 bg-gray-100 w-full absolute top-full md:p-0 md:static md:flex md:w-auto text-lg md:flex md:flex-col" id="navbar-default">
                             <ul class="font-medium flex flex-col p-4 md:p-0 md:px-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-4 md:mt-0 md:border-0 md:bg-gray-100 md:grow">
                                 <li>
                                     <RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
@@ -102,5 +102,39 @@ li {
 
 #nav_overlay {
     transition: 0.2 all ease-in-out;
+}
+
+/* TODO: Ensure that 'max-width' is always the same as the size of an 'md' screen */
+/* TODO: Only play scale down animation after scale up */
+@media (max-width: 768px) {
+    .show-nav-items {
+        transform-origin: top;
+        animation: nav-items-scale-up 0.4s ease-in-out forwards;
+    }
+
+    .hide-nav-items {
+        transform-origin: top;
+        animation: nav-items-scale-down 0.4s ease-in-out forwards;
+    }
+}
+
+@keyframes nav-items-scale-up {
+    0% {
+        display: block;
+        transform: scale(100%, 0%);
+    }
+    100% {
+        transform: scale(100%, 100%);
+    }
+}
+
+@keyframes nav-items-scale-down {
+    0% {
+        transform: scale(100%, 100%);
+    }
+    100% {
+        transform: scale(100%, 0%);
+        display: hidden;
+    }
 }
 </style>
