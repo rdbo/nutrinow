@@ -560,7 +560,7 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mu
     /* TODO: Add these values to database, they don't belong in source code! */
     default_nutrition.insert("Protein", (1.0, true));
     default_nutrition.insert("Carbohydrates", (2.5, true));
-    default_nutrition.insert("Fats", (32.0, true));
+    default_nutrition.insert("Fats", (1.0, true));
     default_nutrition.insert("Sugars", (0.0, false)); // TODO: Adjust
     default_nutrition.insert("Fiber", (
         if user_info.gender == "M" {
