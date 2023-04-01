@@ -25,12 +25,14 @@ use rocket_db_pools::{
     }
 };
 
-use std::path::PathBuf;
+use std::{
+    path::PathBuf,
+    collections::HashMap
+};
 
 mod helpers;
 
-use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id};
-
+use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id, user_information, calculate_age};
 
 #[derive(Database)]
 #[database("nutrinow")]
@@ -471,17 +473,27 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
     };
 
     if user_id != diet_owner_id {
-        return Json(DeleteDietResponse::err("user does not own diet"));
+        return Json(DeleteDietResponse::err("User does not own diet"));
     }
 
     let delete_diet = async {
-        match sqlx::query("DELETE FROM meal WHERE diet_id = $1")
+        sqlx::query("DELETE FROM meal_serving WHERE meal_id IN (SELECT meal_serving.id FROM meal_serving JOIN meal ON meal.id = meal_serving.meal_id WHERE diet_id = $1)")
             .bind(data.diet_id)
             .execute(&mut *db)
-            .await {
-            Ok(_) => { },
-            Err(_) => return Err(())
-        };
+            .await
+            .ok();
+
+        sqlx::query("DELETE FROM meal WHERE diet_id = $1")
+            .bind(data.diet_id)
+            .execute(&mut *db)
+            .await
+            .ok();
+
+        sqlx::query("DELETE FROM diet_nutrition WHERE diet_id = $1")
+            .bind(data.diet_id)
+            .execute(&mut *db)
+            .await
+            .ok();
 
         match sqlx::query("DELETE FROM diet WHERE id = $1")
             .bind(data.diet_id)
@@ -496,7 +508,7 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
 
     match delete_diet.await {
         Ok(_) => Json(DeleteDietResponse::ok()),
-        Err(_) => Json(DeleteDietResponse::err("failed to delete diet"))
+        Err(_) => Json(DeleteDietResponse::err("Failed to delete diet"))
     }
 }
 
@@ -525,23 +537,178 @@ impl NewDietResponse {
 async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<NewDietResponse> {
     let user_id = match user_id_from_cookies(cookies, &mut *db).await {
         Ok(r) => r,
-        Err(s) => {
-            return Json(NewDietResponse::err(s));
-        }
+        Err(s) => return Json(NewDietResponse::err(s))
     };
 
+    let user_info = match user_information(user_id, &mut *db).await {
+        Ok(r) => r,
+        Err(s) => return Json(NewDietResponse::err(s))
+    };
+
+    let user_age = calculate_age(&user_info.birthdate);
+
     let query_new_diet = async {
-        sqlx::query("INSERT INTO diet(name, user_id) VALUES ($1, $2)")
+        sqlx::query("INSERT INTO diet(name, user_id) VALUES ($1, $2) RETURNING id")
             .bind(data.diet_name)
             .bind(user_id)
-            .execute(&mut *db)
+            .fetch_one(&mut *db)
             .await
     };
 
-    match query_new_diet.await {
-        Ok(_) => Json(NewDietResponse::ok()),
-        Err(_) => Json(NewDietResponse::err("failed to add new diet"))
+    let mut default_nutrition = HashMap::new();
+    /* Daily Dietary Intake Estimates (for teens and adults only!). Main Source (consumer fact sheets): https://ods.od.nih.gov */
+    /* TODO: Add these values to database, they don't belong in source code! */
+    default_nutrition.insert("Protein", (1.0, true));
+    default_nutrition.insert("Carbohydrates", (2.5, true));
+    default_nutrition.insert("Fats", (32.0, true));
+    default_nutrition.insert("Sugars", (0.0, false)); // TODO: Adjust
+    default_nutrition.insert("Fiber", (
+        if user_info.gender == "M" {
+            38.0
+        } else {
+            25.0
+        }
+    , false));
+    default_nutrition.insert("Saturated Fat", (10.0, false));
+    default_nutrition.insert("Unsaturated Fat", (20.0, false));
+    default_nutrition.insert("Trans Fat", (2.0, false));
+    default_nutrition.insert("Vitamin A", (
+        if user_age < 18 {
+            600.0
+        } else {
+            if user_info.gender == "M" { 900.0 }
+            else { 700.0 }
+        }
+    , false));
+    default_nutrition.insert("Vitamin B1", (if user_info.gender == "M" { 1.2 } else { 1.1 }, false));
+    default_nutrition.insert("Vitamin B2", (if user_info.gender == "M" { 1.3 } else { 1.1 }, false));
+    default_nutrition.insert("Vitamin B3", (if user_info.gender == "M" { 16.0 } else { 14.0 }, false));
+    default_nutrition.insert("Vitamin B5", (5.0, false));
+    default_nutrition.insert("Vitamin B6", (1.3, false));
+    default_nutrition.insert("Vitamin B7", (if user_age <= 18 { 25.0 } else { 3.0 }, false));
+    default_nutrition.insert("Vitamin B9", (400.0, false));
+    default_nutrition.insert("Vitamin B12", (2.4, false));
+    default_nutrition.insert("Vitamin C", (
+        if user_info.gender == "M" {
+            if user_age <= 18 {
+                75.0
+            } else {
+                90.0
+            }
+        } else {
+            if user_age <= 18 {
+                65.0
+            } else {
+                75.0
+            }
+        }
+    , false));
+    default_nutrition.insert("Vitamin D", (15.0, false));
+    default_nutrition.insert("Vitamin E", (15.0, false));
+    default_nutrition.insert("Vitamin K", (
+        if user_age <= 18 {
+            75.0
+        } else {
+            if user_info.gender == "M" {
+                120.0
+            } else {
+                90.0
+            }
+        }
+    , false));
+    default_nutrition.insert("Calcium", (
+        if user_age <= 18 {
+            1300.0
+        } else {
+            1000.0
+        }
+    , false));
+    default_nutrition.insert("Iron", (
+        if user_age <= 18 {
+            if user_info.gender == "M" {
+                11.0
+            } else {
+                15.0
+            }
+        } else {
+            if user_info.gender == "M" {
+                8.0
+            } else {
+                18.0
+            }
+        }
+    , false));
+    default_nutrition.insert("Magnesium", (
+        if user_info.gender == "M" {
+            410.0
+        } else {
+            if user_age <= 18 {
+                360.0
+            } else {
+                310.0
+            }
+        }
+    , false));
+    default_nutrition.insert("Phosphorus", (
+        if user_age <= 18 {
+            1250.0
+        } else {
+            700.0
+        }
+    , false));
+    default_nutrition.insert("Potassium", (
+        if user_age <= 18 {
+            if user_info.gender == "M" {
+                3000.0
+            } else {
+                2300.0
+            }
+        } else {
+            if user_info.gender == "M" {
+                3400.0
+            } else {
+                2600.0
+            }
+        }
+    , false));
+    default_nutrition.insert("Sodium", (1500.0, false));
+    default_nutrition.insert("Zinc", (
+        if user_info.gender == "M" {
+            11.0
+        } else {
+            8.0
+        }
+    , false));
+    default_nutrition.insert("Copper", (900.0, false));
+    default_nutrition.insert("Manganese", (
+        if user_info.gender == "M" {
+            400.0
+        } else {
+            310.0
+        }
+    , false));
+    default_nutrition.insert("Selenium", (55.0, false));
+    default_nutrition.insert("Water", (0.033 * 1000.0 /* convert from l to ml */, true));
+
+    let new_diet = match query_new_diet.await {
+        Ok(r) => r,
+        Err(_) => return Json(NewDietResponse::err("Failed to add new diet"))
+    };
+
+    let diet_id : i32 = new_diet.try_get("id").unwrap();
+
+    for (key, value) in default_nutrition {
+        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, daily_intake, relative) VALUES ($1, (SELECT id FROM nutrient WHERE name = $2 LIMIT 1), $3, $4)")
+            .bind(diet_id)
+            .bind(key)
+            .bind(value.0)
+            .bind(value.1)
+            .execute(&mut *db)
+            .await
+            .ok();
     }
+
+    Json(NewDietResponse::ok())
 }
 
 // Edit Diet Request

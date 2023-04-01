@@ -20,6 +20,10 @@ pub fn sha256str(string : &str) -> String {
     format!("{:x}", hash.finalize())
 }
 
+use chrono::{
+    Utc, NaiveDate
+};
+
 pub fn session_id_from_cookies(cookies : &CookieJar<'_>) -> Result<Uuid, &'static str> {
     let session_uuid = match cookies.get("session_id") {
         Some(id) => id,
@@ -91,4 +95,40 @@ pub async fn meal_owner_id(meal_id : i32, db : &mut PoolConnection<Postgres>) ->
     let diet_owner_id : i32 = diet_owner_id.try_get("user_id").unwrap();
 
     Ok(diet_owner_id)
+}
+
+pub struct UserInformation {
+    pub weight : f64,
+    pub gender : String,
+    pub birthdate : NaiveDate
+}
+
+pub async fn user_information(user_id : i32, db : &mut PoolConnection<Postgres>) -> Result<UserInformation, &'static str> {
+    let query_user_info = async {
+        sqlx::query("SELECT gender, weight, birthdate FROM user_account WHERE id = $1")
+            .bind(user_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let user_info = match query_user_info.await {
+        Ok(r) => r,
+        Err(_) => return Err("Failed to query user information")
+    };
+
+    let user_information = UserInformation {
+        gender: user_info.try_get("gender").unwrap(),
+        weight: user_info.try_get("weight").unwrap(),
+        birthdate: user_info.try_get("birthdate").unwrap()
+    };
+
+    Ok(user_information)
+}
+
+pub fn calculate_age(date : &NaiveDate) -> u32 {
+    let now = Utc::now().date_naive();
+    match now.years_since(*date) {
+        Some(y) => y,
+        None => 0
+    }
 }
