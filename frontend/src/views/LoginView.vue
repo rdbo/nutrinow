@@ -22,7 +22,7 @@ function loginHandler(e) {
 
     axios.post("/api/login", loginData)
     .then(function (response) {
-        if (respone.data.err) {
+        if (response.data.err) {
             waitingLogin.value = false;
             errorStore.msgs.push(response.data.err);
             return;
