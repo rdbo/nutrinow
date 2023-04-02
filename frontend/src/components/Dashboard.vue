@@ -9,6 +9,9 @@ import ModalNewDiet from "./ModalNewDiet.vue";
 import ModalEditDiet from "./ModalEditDiet.vue";
 import ModalAddMeal from "./ModalAddMeal.vue";
 import ModalDeleteMeal from "./ModalDeleteMeal.vue";
+import { useErrorStore } from "@/stores/error";
+
+const errorStore = useErrorStore();
 
 const curDietIndex = ref(0);
 const diets = ref([]);
@@ -29,7 +32,7 @@ function updateCurDiet(index) {
     axios.get("/api/meals/" + diets.value[curDietIndex.value].id)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             meals.value = [];
             return;
         }
@@ -37,14 +40,14 @@ function updateCurDiet(index) {
         meals.value = response.data.meals;
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/meals/<diet_id>)");
         meals.value = [];
     });
 
     axios.get("/api/diet_nutrition/" + diets.value[curDietIndex.value].id)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             diets.value[curDietIndex.value].desired_nutrition = [];
             return;
         }
@@ -52,7 +55,7 @@ function updateCurDiet(index) {
         diets.value[curDietIndex.value].desired_nutrition = response.data.nutrition;
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/diet_nutrition/<diet_id>)");
         diets.value[curDietIndex.value].desired_nutrition = [];
     });
 }
@@ -64,13 +67,13 @@ function createNewDiet(name) {
     axios.post("/api/new_diet", newDietData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
         updateDiets(true);
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/new_diet)");
     });
 }
 
@@ -82,7 +85,7 @@ function editCurDiet(name) {
     axios.post("/api/edit_diet", editDietData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -90,7 +93,7 @@ function editCurDiet(name) {
         updateCurDiet(curDietIndex.value); // refresh cookie
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/edit_diet)");
     });
 }
 
@@ -101,7 +104,7 @@ function deleteCurDiet() {
     axios.post("/api/delete_diet", deleteDietData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -111,7 +114,7 @@ function deleteCurDiet() {
         updateCurDiet(curDietIndex.value);
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/delete_diet)");
     });
 }
 
@@ -123,14 +126,14 @@ function addMeal(mealName) {
     axios.post("/api/add_meal", addMealData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
         meals.value.push(response.data.meal);
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/add_meal)");
     });
 }
 
@@ -143,7 +146,7 @@ function deleteMeal() {
     axios.post("/api/delete_meal", deleteMealData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -155,7 +158,7 @@ function deleteMeal() {
         }
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/delete_meal)");
     })
 }
 
@@ -163,7 +166,7 @@ function updateDiets(useLast = false) {
     axios.get("/api/diets")
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -183,7 +186,7 @@ function updateDiets(useLast = false) {
         updateCurDiet(newCurDietIndex);
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/diets)");
     });
 }
 
@@ -191,14 +194,14 @@ function updateUserInfo() {
     axios.get("/api/user")
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
         userInfo.value = response.data;
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/user)");
     });
 }
 
@@ -206,14 +209,14 @@ function updateNutrients() {
     axios.get("/api/nutrients")
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
         nutrients.value = response.data.nutrients;
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/nutrients)");
     });
 }
 

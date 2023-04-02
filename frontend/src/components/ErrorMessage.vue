@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 
-const props = defineProps(["msg"]);
+const props = defineProps(["msgs"]);
 const emit = defineEmits(["close"]);
 </script>
 
@@ -26,7 +26,7 @@ const emit = defineEmits(["close"]);
                                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                         <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900">Error</DialogTitle>
                                         <div class="mt-2">
-                                            <p class="text-lg text-gray-500">{{ msg }}</p>
+                                            <p v-for="msg in msgs" class="text-lg text-gray-500">{{ msg }}</p>
                                         </div>
                                     </div>
                                 </div>

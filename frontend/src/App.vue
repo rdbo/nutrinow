@@ -76,7 +76,7 @@ setInterval(updateSession, 100);
 
         <main class="grow flex flex-col">
             <RouterView @update-session="updateSession" :session_id="session_id"/>
-            <ErrorMessage v-if="errorStore.msg" @close="errorStore.msg = ''" :msg="errorStore.msg"/>
+            <ErrorMessage v-if="errorStore.msgs.length > 0" @close="errorStore.msgs = []" :msgs="errorStore.msgs"/>
         </main>
     </div>
 
