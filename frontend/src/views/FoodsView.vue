@@ -2,12 +2,14 @@
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
+import { useErrorStore } from "@/stores/error";
 import { MagnifyingGlassIcon } from "@heroicons/vue/20/solid";
 import SearchFood from "../components/SearchFood.vue";
 import ModalFoodViewer from "../components/ModalFoodViewer.vue";
 
 const router = useRouter();
 const route = useRoute();
+const errorStore = useErrorStore();
 
 const searchStatus = ref("");
 const searchQuery = ref(null);
@@ -28,7 +30,8 @@ function updateResults() {
     axios.get("/api/food_search/" + foodName)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Handle error
+            searchStatus.value = "";
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -41,7 +44,8 @@ function updateResults() {
         searchResults.value = response.data.matches;
     })
     .catch(function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/food_search/<foodName>)");
+        searchStatus.value = "";
     });
 }
 
@@ -67,14 +71,14 @@ function addFoodToMeal(servingId, amount) {
     .then(function (response) {
         // TODO: Show user if succeeded or not
         if (response.data.err) {
-            // TODO: Handle error
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
         selectedFood.value = null;
     })
     .catch (function (err) {
-        // TODO: Handle error
+        errorStore.msgs.push("Failed to connect to the server (/api/add_meal_serving)");
     });
 }
 
