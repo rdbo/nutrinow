@@ -24,7 +24,7 @@ function loginHandler(e) {
     .then(function (response) {
         if (respone.data.err) {
             waitingLogin.value = false;
-            errorStore.msg = response.data.err;
+            errorStore.msgs.push(response.data.err);
             return;
         }
 
@@ -32,7 +32,7 @@ function loginHandler(e) {
         emit("update-session");
         router.push({ name: "home" });
     }).catch(function (err) {
-        errorStore.msg = "Failed to connect to server (/api/login)";
+        errorStore.msgs.push("Failed to connect to server (/api/login)");
         waitingLogin.value = false;
     });
 }
