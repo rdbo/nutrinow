@@ -1,8 +1,12 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink, RouterView } from "vue-router";
+import { useErrorStore } from "@/stores/error";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 import { Bars3Icon } from "@heroicons/vue/20/solid";
 import axios from "axios";
+
+const errorStore = useErrorStore();
 
 const session_id = ref(null);
 const showNavItems = ref(false); // show navigation items on mobile
@@ -46,19 +50,19 @@ setInterval(updateSession, 100);
                         <div :class="[showNavItems ? 'show-nav-items' : 'hide-nav-items']" class="p-4 bg-gray-100 w-full absolute top-full md:p-0 md:static md:flex md:w-auto text-lg md:flex md:flex-col" id="navbar-default">
                             <ul class="font-medium flex flex-col p-4 md:p-0 md:px-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-4 md:mt-0 md:border-0 md:bg-gray-100 md:grow">
                                 <li>
-                                    <RouterLink :session_id="test" :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
+                                    <RouterLink :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
                                 </li>
                                 <li>
-                                    <RouterLink :session_id="test" :to="{ name: 'about' }" class="nav-item" aria-current="page">About</RouterLink>
+                                    <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">About</RouterLink>
                                 </li>
                                 <li>
-                                    <RouterLink :session_id="test" :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
+                                    <RouterLink :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
                                 </li>
                                 <li v-if="!session_id">
-                                    <RouterLink :session_id="test" :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
+                                    <RouterLink :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
                                 </li>
                                 <li v-if="!session_id">
-                                    <RouterLink :session_id="test" :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
+                                    <RouterLink :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
                                 </li>
                                 <li v-if="session_id">
                                     <div @click="logout" class="cursor-pointer nav-item">Logout</div>
@@ -72,6 +76,7 @@ setInterval(updateSession, 100);
 
         <main class="grow flex flex-col">
             <RouterView @update-session="updateSession" :session_id="session_id"/>
+            <ErrorMessage v-if="errorStore.msg" @close="errorStore.msg = ''" :msg="errorStore.msg"/>
         </main>
     </div>
 

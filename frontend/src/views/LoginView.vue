@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useErrorStore } from "@/stores/error";
 import axios from "axios";
 
 const router = useRouter();
 const emit = defineEmits(['update-session']);
+const errorStore = useErrorStore();
 
 const emailForm = ref(null);
 const passwordForm = ref(null);
@@ -20,18 +22,17 @@ function loginHandler(e) {
 
     axios.post("/api/login", loginData)
     .then(function (response) {
-        if (response.data.session_id) {
-            $cookies.set("session_id", response.data.session_id, "1y");
-            emit("update-session");
-            router.push({ name: "home" });
-        } else {
-            // TODO: Show error message to user
-            console.log("failed to log in");
+        if (respone.data.err) {
             waitingLogin.value = false;
+            errorStore.msg = response.data.err;
+            return;
         }
+
+        $cookies.set("session_id", response.data.session_id, "1y");
+        emit("update-session");
+        router.push({ name: "home" });
     }).catch(function (err) {
-        // TODO: Handle error
-        console.log("/api/login request error: " + err);
+        errorStore.msg = "Failed to connect to server (/api/login)";
         waitingLogin.value = false;
     });
 }
