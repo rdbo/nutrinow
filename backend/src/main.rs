@@ -1324,6 +1324,12 @@ async fn api_add_meal_serving(data : Form<AddMealServingForm>, cookies : &Cookie
     }
 }
 
+// Duplicate Diet Request
+#[post("/duplicate_diet", data = "<data>")]
+async fn api_duplicate_diet(data : Form<DuplicateDietForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DuplicateDietResponse> {
+    // TODO: Implement
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {

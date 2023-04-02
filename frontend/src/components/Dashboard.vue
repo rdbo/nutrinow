@@ -118,6 +118,10 @@ function deleteCurDiet() {
     });
 }
 
+function duplicateCurDiet() {
+    // TODO: Implement
+}
+
 function addMeal(mealName) {
     showAddMeal.value = false;
     let addMealData = new FormData();
@@ -253,7 +257,7 @@ sessionStorage.removeItem("meal_id");
         <h1 class="text-2xl max-md:text-center">Dashboard - {{ userInfo.name }}</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" @duplicate-diet="duplicateCurDiet" :curDietIndex="curDietIndex" :diets="diets"/>
                 <ModalNewDiet @cancel-new="showNewDiet = false" @new-diet="createNewDiet" v-if="showNewDiet"/>
                 <ModalEditDiet @cancel-edit="showEditDiet = false" @edit-diet="editCurDiet" v-if="showEditDiet" :diet="diets[curDietIndex]"/>
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
