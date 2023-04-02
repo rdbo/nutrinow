@@ -1,9 +1,11 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useErrorStore } from "@/stores/error";
 import axios from "axios";
 
 const router = useRouter();
+const errorStore = useErrorStore();
 
 const creatingAccount = ref(false);
 const confirmPassword = ref(null)
@@ -43,16 +45,15 @@ function registerHandler(e) {
     axios.post("/api/register", registerData)
     .then(function (response) {
         if (response.data.err) {
-            // TODO: Show error message to user
-            console.log("failed to log in");
+            errorStore.msgs.push(response.data.err);
             creatingAccount.value = false;
         } else {
             router.push({ name: "login" });
         }
-    }).catch(function (err) {
-        // TODO: Handle error
-        console.log("/api/register request error: " + err);
-        waitingLogin.value = false;
+    })
+    .catch(function (err) {
+        creatingAccount.value = false;
+        errorStore.msgs.push("Failed to connect to the server (/api/register)");
     });
 }
 </script>
