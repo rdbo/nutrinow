@@ -125,6 +125,76 @@ pub async fn user_information(user_id : i32, db : &mut PoolConnection<Postgres>)
     Ok(user_information)
 }
 
+pub async fn duplicate_diet(user_id : i32, diet_id : i32, diet_name : &str, db : &mut PoolConnection<Postgres>) -> Result<(), &'static str> {
+    let query_create_diet = async {
+        sqlx::query("INSERT INTO diet(name, user_id) VALUES($1, $2) RETURNING id")
+            .bind(diet_name)
+            .bind(user_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let new_diet_id : i32 = match query_create_diet.await {
+        Ok(r) => r.try_get("id").unwrap(),
+        Err(_) => return Err("Failed to create new diet")
+    };
+
+    let query_copy_nutrition = async {
+        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, daily_intake, relative) SELECT $1, nutrient_id, daily_intake, relative FROM diet_nutrition WHERE diet_id = $2")
+            .bind(new_diet_id)
+            .bind(diet_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_copy_nutrition.await {
+        Ok(_) => {  },
+        Err(_) => return Err("Failed to copy diet nutrition")
+    }
+
+    let query_diet_meals = async {
+        sqlx::query("SELECT id, name FROM meal WHERE diet_id = $1")
+            .bind(diet_id)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let diet_meals = match query_diet_meals.await {
+        Ok(r) => r,
+        Err(_) => return Err("Failed to query diet meals")
+    };
+
+    for meal in diet_meals {
+        let meal_id : i32 = meal.try_get("id").unwrap();
+        let meal_name : String = meal.try_get("name").unwrap();
+
+        let query_copy_meal = async {
+            sqlx::query("INSERT INTO meal(diet_id, name) VALUES ($1, $2) RETURNING id")
+                .bind(new_diet_id)
+                .bind(meal_name)
+                .fetch_one(&mut *db)
+                .await
+        };
+
+        let new_meal_id : i32 = match query_copy_meal.await {
+            Ok(r) => r.try_get("id").unwrap(),
+            Err(_) => continue
+        };
+
+        let query_copy_servings = async {
+            sqlx::query("INSERT INTO meal_serving(meal_id, serving_id, amount) SELECT $1, serving_id, amount FROM meal_serving WHERE meal_id = $2")
+                .bind(new_meal_id)
+                .bind(meal_id)
+                .execute(&mut *db)
+                .await
+        };
+
+        query_copy_servings.await.ok();
+    }
+
+    Ok(())
+}
+
 pub fn calculate_age(date : &NaiveDate) -> u32 {
     let now = Utc::now().date_naive();
     match now.years_since(*date) {

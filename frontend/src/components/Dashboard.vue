@@ -9,6 +9,7 @@ import ModalNewDiet from "./ModalNewDiet.vue";
 import ModalEditDiet from "./ModalEditDiet.vue";
 import ModalAddMeal from "./ModalAddMeal.vue";
 import ModalDeleteMeal from "./ModalDeleteMeal.vue";
+import ModalDuplicateDiet from "./ModalDuplicateDiet.vue";
 import { useErrorStore } from "@/stores/error";
 
 const errorStore = useErrorStore();
@@ -19,6 +20,7 @@ const showDeleteDiet = ref(false);
 const showNewDiet = ref(false);
 const showEditDiet = ref(false);
 const showAddMeal = ref(false);
+const showDuplicateDiet = ref(false);
 const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const meals = ref([]);
 const userInfo = ref(null);
@@ -118,8 +120,22 @@ function deleteCurDiet() {
     });
 }
 
-function duplicateCurDiet() {
-    // TODO: Implement
+function duplicateCurDiet(name) {
+    showDuplicateDiet.value = false;
+    let duplicateDietData = new FormData();
+    duplicateDietData.append("diet_id", diets.value[curDietIndex.value].id);
+    duplicateDietData.append("diet_name", name);
+    axios.post("/api/duplicate_diet", duplicateDietData)
+    .then(function (response) {
+        if (response.data.err) {
+            errorStore.msgs.push(response.data.err);
+            return;
+        }
+        updateDiets(true);
+    })
+    .catch(function (err) {
+        errorStore.msgs.push("Failed to connect to the server (/api/edit_diet)");
+    });
 }
 
 function addMeal(mealName) {
@@ -257,10 +273,11 @@ sessionStorage.removeItem("meal_id");
         <h1 class="text-2xl max-md:text-center">Dashboard - {{ userInfo.name }}</h1>
         <div>
             <div class="my-4">
-                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" @duplicate-diet="duplicateCurDiet" :curDietIndex="curDietIndex" :diets="diets"/>
+                <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" @duplicate-diet="showDuplicateDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
                 <ModalNewDiet @cancel-new="showNewDiet = false" @new-diet="createNewDiet" v-if="showNewDiet"/>
                 <ModalEditDiet @cancel-edit="showEditDiet = false" @edit-diet="editCurDiet" v-if="showEditDiet" :diet="diets[curDietIndex]"/>
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
+                <ModalDuplicateDiet @cancel-duplicate="showDuplicateDiet = false" @duplicate-diet="duplicateCurDiet" v-if="showDuplicateDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
                 <Meal v-for="meal in meals" @delete-meal="(id) => deleteMealId = id" @delete-meal-food="deleteMealFood" @edit-meal-food="editMealFood" @view-meal-food="viewMealFood" :meal="meal" class="mt-8"/>

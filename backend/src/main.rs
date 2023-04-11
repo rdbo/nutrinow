@@ -32,7 +32,7 @@ use std::{
 
 mod helpers;
 
-use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id, user_information, calculate_age};
+use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id, user_information, calculate_age, duplicate_diet};
 
 #[derive(Database)]
 #[database("nutrinow")]
@@ -1325,9 +1325,47 @@ async fn api_add_meal_serving(data : Form<AddMealServingForm>, cookies : &Cookie
 }
 
 // Duplicate Diet Request
+#[derive(FromForm)]
+struct DuplicateDietForm<'a> {
+    diet_id : i32,
+    diet_name : &'a str
+}
+
+#[derive(Serialize)]
+struct DuplicateDietResponse {
+    err : &'static str
+}
+
+impl DuplicateDietResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
 #[post("/duplicate_diet", data = "<data>")]
-async fn api_duplicate_diet(data : Form<DuplicateDietForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DuplicateDietResponse> {
-    // TODO: Implement
+async fn api_duplicate_diet(data : Form<DuplicateDietForm<'_>>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DuplicateDietResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(r) => r,
+        Err(s) => return Json(DuplicateDietResponse::err(s))
+    };
+
+    let diet_owner_id = match diet_owner_id(data.diet_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DuplicateDietResponse::err(s))
+    };
+
+    if user_id != diet_owner_id {
+        return Json(DuplicateDietResponse::err("User does not own diet"));
+    }
+
+    match duplicate_diet(user_id, data.diet_id, data.diet_name, &mut *db).await {
+        Ok(_) => Json(DuplicateDietResponse::ok()),
+        Err(s) => Json(DuplicateDietResponse::err(s))
+    }
 }
 
 // Handle Vue routes that are not static files
@@ -1343,5 +1381,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving, api_duplicate_diet])
 }
