@@ -2,20 +2,21 @@
 import { ref } from "vue";
 import { RouterLink, RouterView } from "vue-router";
 import { useErrorStore } from "@/stores/error";
+import { useSessionStore } from "@/stores/session";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import { Bars3Icon } from "@heroicons/vue/20/solid";
 import axios from "axios";
 
 const errorStore = useErrorStore();
+const sessionStore = useSessionStore();
 
-const session_id = ref(null);
 const showNavItems = ref(false); // show navigation items on mobile
 
 function logout() {
     let delete_session = () => {
         // remove session from client side
         $cookies.remove("session_id");
-        session_id.value = null;
+        sessionStore.id = null;
     }
 
     // tell the server to delete the session
@@ -25,7 +26,7 @@ function logout() {
 }
 
 function updateSession() {
-    session_id.value = $cookies.get("session_id");
+    sessionStore.id = $cookies.get("session_id");
 }
 
 updateSession();
@@ -58,13 +59,13 @@ setInterval(updateSession, 100);
                                 <li>
                                     <RouterLink :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
                                 </li>
-                                <li v-if="!session_id">
+                                <li v-if="!sessionStore.id">
                                     <RouterLink :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
                                 </li>
-                                <li v-if="!session_id">
+                                <li v-if="!sessionStore.id">
                                     <RouterLink :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
                                 </li>
-                                <li v-if="session_id">
+                                <li v-if="sessionStore.id">
                                     <div @click="logout" class="cursor-pointer nav-item">Logout</div>
                                 </li>
                             </ul>
@@ -75,7 +76,7 @@ setInterval(updateSession, 100);
         </header>
 
         <main class="grow flex flex-col">
-            <RouterView @update-session="updateSession" :session_id="session_id"/>
+            <RouterView/>
             <ErrorMessage v-if="errorStore.msgs.length > 0" @close="errorStore.msgs = []" :msgs="errorStore.msgs"/>
         </main>
     </div>

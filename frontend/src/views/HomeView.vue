@@ -1,13 +1,14 @@
 <script setup>
 import Welcome from "../components/Welcome.vue";
 import Dashboard from "../components/Dashboard.vue";
+import { useSessionStore } from "@/stores/session";
 
-const props = defineProps(["session_id"]);
+const sessionStore = useSessionStore();
 </script>
 
 <template>
-    <div v-if="session_id">
-        <Dashboard :session_id="session_id"/>
+    <div v-if="sessionStore.id">
+        <Dashboard/>
     </div>
     <div v-else>
         <Welcome/>

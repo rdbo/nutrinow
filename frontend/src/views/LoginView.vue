@@ -2,11 +2,12 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useErrorStore } from "@/stores/error";
+import { useSessionStore } from "@/stores/session";
 import axios from "axios";
 
 const router = useRouter();
-const emit = defineEmits(['update-session']);
 const errorStore = useErrorStore();
+const sessionStore = useSessionStore();
 
 const emailForm = ref(null);
 const passwordForm = ref(null);
@@ -29,7 +30,7 @@ function loginHandler(e) {
         }
 
         $cookies.set("session_id", response.data.session_id, "1y");
-        emit("update-session");
+        sessionStore.id = response.data.session_id;
         router.push({ name: "home" });
     }).catch(function (err) {
         errorStore.msgs.push("Failed to connect to server (/api/login)");
