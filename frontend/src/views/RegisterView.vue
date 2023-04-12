@@ -2,25 +2,28 @@
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import { useErrorStore } from "@/stores/error";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/20/solid";
 import axios from "axios";
 
 const router = useRouter();
 const errorStore = useErrorStore();
 
 const creatingAccount = ref(false);
-const confirmPassword = ref(null)
 const errors = ref([]);
 const nameForm = ref(null);
 const birthdateForm = ref(null);
 const emailForm = ref(null);
 const passwordForm = ref(null);
+const confirmPasswordForm = ref(null);
 const genderForm = ref(null);
 const weightForm = ref(null);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 function checkForm() {
     errors.value = [];
 
-    if (passwordForm.value != confirmPassword.value) {
+    if (passwordForm.value != confirmPasswordForm.value) {
         errors.value.push("Passwords don't match");
     }
 
@@ -44,6 +47,7 @@ function registerHandler(e) {
 
     axios.post("/api/register", registerData)
     .then(function (response) {
+        creatingAccount.value = false;
         if (response.data.err) {
             errorStore.msgs.push(response.data.err);
             creatingAccount.value = false;
@@ -76,11 +80,24 @@ function registerHandler(e) {
             </div>
             <div>
                 <label>Password:</label>
-                <input v-model="passwordForm" name="password" type="password" required/>
+                <div class="flex">
+                        <input class="password-input" v-model="passwordForm" name="password" :type="showPassword ? 'text' : 'password'" required/>
+                        <div @click="showPassword = !showPassword" class="px-2 cursor-pointer rounded-md rounded-l-none border-gray-700 border-2 bg-gray-200 flex justify-center items-center">
+                            <EyeIcon v-if="showPassword" class="w-5"/>
+                            <EyeSlashIcon v-else class="w-5"/>
+                        </div>
+                </div>
             </div>
             <div>
                 <label>Confirm Password:</label>
-                <input type="password" v-model="confirmPassword" required/>
+                <div class="flex">
+                        <input class="password-input" v-model="confirmPasswordForm" name="password" :type="showConfirmPassword ? 'text' : 'password'" required/>
+                        <div @click="showConfirmPassword = !showConfirmPassword" class="px-2 cursor-pointer rounded-md rounded-l-none border-gray-700 border-2 bg-gray-200 flex justify-center items-center">
+                            <EyeIcon v-if="showConfirmPassword" class="w-5"/>
+                            <EyeSlashIcon v-else class="w-5"/>
+                        </div>
+                </div>
+
             </div>
             <div>
                 <label>Gender:</label>
@@ -166,5 +183,9 @@ ul {
 
 .btn-creating:hover {
     @apply bg-gray-400;
+}
+
+.password-input {
+    @apply rounded-r-none border-r-0 grow;
 }
 </style>

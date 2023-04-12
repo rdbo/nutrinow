@@ -3,23 +3,25 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useErrorStore } from "@/stores/error";
 import { useSessionStore } from "@/stores/session";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/20/solid";
 import axios from "axios";
 
 const router = useRouter();
 const errorStore = useErrorStore();
 const sessionStore = useSessionStore();
 
-const emailForm = ref(null);
-const passwordForm = ref(null);
+const emailForm = ref("");
+const passwordForm = ref("");
 const waitingLogin = ref(false);
+const showPassword = ref(false);
 
 function loginHandler(e) {
     e.preventDefault(); // prevent redirection
     waitingLogin.value = true;
 
     let loginData = new FormData();
-    loginData.append("email", emailForm.value.value);
-    loginData.append("password", passwordForm.value.value);
+    loginData.append("email", emailForm.value);
+    loginData.append("password", passwordForm.value);
 
     axios.post("/api/login", loginData)
     .then(function (response) {
@@ -45,13 +47,19 @@ function loginHandler(e) {
         <form @submit="loginHandler" method="POST" action="/api/login" class="flex flex-col">
             <div>
                 <label>E-Mail:</label>
-                <input ref="emailForm" name="email" type="email" required/>
+                <input v-model="emailForm" name="email" type="email" required/>
             </div>
             <div>
                 <label>Password:</label>
-                <input ref="passwordForm" name="password" type="password" required/>
+                <div class="flex">
+                        <input id="password_input" v-model="passwordForm" name="password" :type="showPassword ? 'text' : 'password'" required/>
+                        <div @click="showPassword = !showPassword" class="px-2 cursor-pointer rounded-md rounded-l-none border-gray-700 border-2 bg-gray-200 flex justify-center items-center">
+                            <EyeIcon v-if="showPassword" class="w-5"/>
+                            <EyeSlashIcon v-else class="w-5"/>
+                        </div>
+                </div>
             </div>
-            <button class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500" :class="{ 'btn-waiting': waitingLogin }" :disabled="waitingLogin">
+            <button id="login-button" class="text-2xl py-2 px-2 my-2 border-2 border-gray-700 rounded-md bg-amber-500" :class="{ 'btn-waiting': waitingLogin }" :disabled="waitingLogin">
                 <span v-if="!waitingLogin">Log-in</span>
                 <span v-else>Logging in...</span>
             </button>
@@ -69,7 +77,11 @@ input {
     @apply text-xl border-2 border-gray-700 px-1 rounded-md;
 }
 
-form div {
+#password_input {
+    @apply rounded-r-none border-r-0 grow;
+}
+
+form > div {
     @apply my-2 flex flex-col;
 }
 
@@ -81,11 +93,11 @@ form div {
     @apply bg-gray-400;
 }
 
-button {
+#login-button {
     transition: all 0.2s ease-in-out;
 }
 
-button:hover {
+#login-button:hover {
     @apply bg-amber-400 text-gray-600;
 }
 
