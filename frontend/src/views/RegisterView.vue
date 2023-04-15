@@ -2,11 +2,13 @@
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import { useErrorStore } from "@/stores/error";
+import { useSessionStore } from "@/stores/session";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/20/solid";
 import axios from "axios";
 
 const router = useRouter();
 const errorStore = useErrorStore();
+const sessionStore = useSessionStore();
 
 const creatingAccount = ref(false);
 const errors = ref([]);
@@ -59,6 +61,11 @@ function registerHandler(e) {
         creatingAccount.value = false;
         errorStore.msgs.push("Failed to connect to the server (/api/register)");
     });
+}
+
+/* redirect to / if user is logged in */
+if (sessionStore.id) {
+    router.push({ name: "home" });
 }
 </script>
 

@@ -39,6 +39,11 @@ function loginHandler(e) {
         waitingLogin.value = false;
     });
 }
+
+/* redirect to / if user is logged in */
+if (sessionStore.id) {
+    router.push({ name: "home" });
+}
 </script>
 
 <template>
