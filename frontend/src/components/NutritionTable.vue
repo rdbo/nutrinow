@@ -47,7 +47,7 @@ const nutritionTable = computed(() => {
 </script>
 
 <template>
-<div class="border-2 border-gray-700 rounded-t-lg text-xl text-gray-800 bg-green-300">
+<div class="border-2 border-gray-700 rounded-lg text-xl text-gray-800 bg-green-300">
     <h1 class="text-center font-bold border-b-2 border-gray-700 py-2">Nutrition Table</h1>
     <div>
         <table class="w-full text-center">
@@ -59,13 +59,26 @@ const nutritionTable = computed(() => {
                 </tr>
             </thead>
             <tbody class="bg-green-200">
-                <tr v-for="nutrient in nutritionTable" class="border-gray-700" :class="{ 'border-b-2': nutrient != nutritionTable[nutritionTable.length - 1], 'bg-red-300': nutrient.amount < nutrient.desired }">
+                <tr v-for="nutrient in nutritionTable" class="border-gray-700 border-b-2" :class="{ 'bg-red-300': nutrient.amount < nutrient.desired }">
                     <td class="border-r-2 border-gray-700 font-bold">{{ nutrient.name }}</td>
                     <td class="border-r-2 border-gray-700">{{ nutrient.amount }}{{ nutrient.unit }}</td>
                     <td>{{ nutrient.desired }}{{ nutrient.unit }}</td>
                 </tr>
             </tbody>
         </table>
+        <div class="flex justify-center items-center">
+            <button class="px-8 py-4 my-2 text-xl text-center border-2 border-gray-700 rounded-md bg-green-400">Edit Intake</button>
+        </div>
     </div>
 </div>
 </template>
+
+<style scoped>
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    @apply bg-green-500;
+}
+</style>
