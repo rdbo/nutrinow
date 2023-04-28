@@ -8,17 +8,23 @@ const nutritionTable = computed(() => {
     props.nutrients.forEach((nutrient) => {
         nutrient_map[nutrient.name] = {
             amount: 0,
-            desired: 0,
+            min_desired: 0,
+            max_desired: 0,
             unit: nutrient.unit
         };
     });
 
     props.diet.desired_nutrition.forEach((nutrient) => {
-        let desired_amount = nutrient.amount;
+        let min_desired = nutrient.min_amount;
+        let max_desired = nutrient.max_amount;
         if (nutrient.relative) {
-            desired_amount *= props.userInfo.weight;
+            if (min_desired !== null)
+                min_desired *= props.userInfo.weight;
+            if (max_desired !== null)
+                max_desired *= props.userInfo.weight;
         }
-        nutrient_map[nutrient.name].desired = desired_amount;
+        nutrient_map[nutrient.name].min_desired = min_desired;
+        nutrient_map[nutrient.name].max_desired = max_desired;
     });
 
     props.meals.forEach((meal) => {
@@ -37,7 +43,8 @@ const nutritionTable = computed(() => {
             name: nutrient,
             amount: nutrient_map[nutrient].amount,
             unit: nutrient_map[nutrient].unit,
-            desired: nutrient_map[nutrient].desired,
+            min_desired: nutrient_map[nutrient].min_desired,
+            max_desired: nutrient_map[nutrient].max_desired,
             relative: nutrient_map[nutrient].relative
         });
     }
@@ -54,15 +61,23 @@ const nutritionTable = computed(() => {
             <thead class="border-b-2 border-gray-700">
                 <tr>
                     <th class="border-r-2 border-gray-700">Name</th>
-                    <th class="border-r-2 border-gray-700">Intake</th>
-                    <th>Desired</th>
+                    <th class="border-r-2 border-gray-700">Min</th>
+                    <th class="border-r-2 border-gray-700">Max</th>
+                    <th>Intake</th>
                 </tr>
             </thead>
             <tbody class="bg-green-200">
-                <tr v-for="nutrient in nutritionTable" class="border-gray-700 border-b-2" :class="{ 'bg-red-300': nutrient.amount < nutrient.desired }">
+                <tr v-for="nutrient in nutritionTable" class="border-gray-700 border-b-2" :class="{ 'bg-red-300': (nutrient.min_desired !== null && nutrient.amount < nutrient.min_desired) || (nutrient.max_desired !== null && nutrient.amount > nutrient.max_desired) }">
                     <td class="border-r-2 border-gray-700 font-bold">{{ nutrient.name }}</td>
-                    <td class="border-r-2 border-gray-700">{{ nutrient.amount }}{{ nutrient.unit }}</td>
-                    <td>{{ nutrient.desired }}{{ nutrient.unit }}</td>
+                    <td class="border-r-2 border-gray-700">
+                        <span v-if="nutrient.min_desired !== null">{{ nutrient.min_desired }}{{ nutrient.unit }}</span>
+                        <span v-else>N/A</span>
+                    </td>
+                    <td class="border-r-2 border-gray-700">
+                        <span v-if="nutrient.max_desired !== null">{{ nutrient.max_desired }}{{ nutrient.unit }}</span>
+                        <span v-else>N/A</span>
+                    </td>
+                    <td>{{ nutrient.amount }}{{ nutrient.unit }}</td>
                 </tr>
             </tbody>
         </table>

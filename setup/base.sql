@@ -70,7 +70,8 @@ CREATE TABLE diet (
 CREATE TABLE diet_nutrition (
     diet_id SERIAL,
     nutrient_id SERIAL,
-    daily_intake FLOAT NOT NULL,
+    min_intake FLOAT,
+    max_intake FLOAT,
     relative BOOLEAN NOT NULL, /* relative to body weight */
     FOREIGN KEY (diet_id) REFERENCES diet(id),
     FOREIGN KEY (nutrient_id) REFERENCES nutrient(id)
