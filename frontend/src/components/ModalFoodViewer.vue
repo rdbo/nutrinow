@@ -9,7 +9,7 @@ const props = defineProps(["food"]);
 const emit = defineEmits(["close", "add-food"]);
 const curServingIndex = ref(0);
 const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
-const formServingAmoutn = ref(null);
+const formServingAmount = ref(null);
 const nutrientList = computed(() => {
     return getServingNutrients(props.food.servings, curServingIndex.value);
 });
