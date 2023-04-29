@@ -32,7 +32,7 @@ use std::{
 
 mod helpers;
 
-use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id, user_information, calculate_age, duplicate_diet};
+use helpers::{session_id_from_cookies, user_id_from_cookies, sha256str, diet_owner_id, meal_owner_id, user_information, calculate_age, duplicate_diet, meal_from_meal_serving};
 
 #[derive(Database)]
 #[database("nutrinow")]
@@ -1273,7 +1273,7 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     Json(FoodSearchResponse::ok(food_list))
 }
 
-// Add to Meal Request
+// Add Meal Serving Request
 #[derive(FromForm)]
 struct AddMealServingForm {
     meal_id : i32,
@@ -1325,6 +1325,60 @@ async fn api_add_meal_serving(data : Form<AddMealServingForm>, cookies : &Cookie
     match query_add_meal_serving.await {
         Ok(_) => Json(AddMealServingResponse::ok()),
         Err(_) => Json(AddMealServingResponse::err("Failed to add serving to meal"))
+    }
+}
+
+// Delete Meal Serving Request
+#[derive(FromForm)]
+struct DeleteMealServingForm {
+    meal_serving_id : i32
+}
+
+#[derive(Serialize)]
+struct DeleteMealServingResponse {
+    err : &'static str
+}
+
+impl DeleteMealServingResponse {
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+}
+
+#[post("/delete_meal_serving", data = "<data>")]
+async fn api_delete_meal_serving(data : Form<DeleteMealServingForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<DeleteMealServingResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteMealServingResponse::err(s))
+    };
+
+    let meal_id = match meal_from_meal_serving(data.meal_serving_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteMealServingResponse::err(s))
+    };
+
+    let meal_owner_id = match meal_owner_id(meal_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(DeleteMealServingResponse::err(s))
+    };
+
+    if meal_owner_id != user_id {
+        return Json(DeleteMealServingResponse::err("User does not own meal"));
+    }
+
+    let query_delete_meal_serving = async {
+        sqlx::query("DELETE FROM meal_serving WHERE id = $1")
+            .bind(data.meal_serving_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_delete_meal_serving.await {
+        Ok(_) => Json(DeleteMealServingResponse::ok()),
+        Err(_) => Json(DeleteMealServingResponse::err("Failed to delete meal serving"))
     }
 }
 
@@ -1385,5 +1439,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving, api_duplicate_diet])
+        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving, api_delete_meal_serving, api_duplicate_diet])
 }

@@ -10,6 +10,7 @@ import ModalEditDiet from "./ModalEditDiet.vue";
 import ModalAddMeal from "./ModalAddMeal.vue";
 import ModalDeleteMeal from "./ModalDeleteMeal.vue";
 import ModalDuplicateDiet from "./ModalDuplicateDiet.vue";
+import ModalDeleteMealFood from "./ModalDeleteMealFood.vue";
 import { useErrorStore } from "@/stores/error";
 
 const errorStore = useErrorStore();
@@ -21,6 +22,7 @@ const showNewDiet = ref(false);
 const showEditDiet = ref(false);
 const showAddMeal = ref(false);
 const showDuplicateDiet = ref(false);
+const deleteMealFood = ref(null);
 const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const meals = ref([]);
 const userInfo = ref(null);
@@ -247,18 +249,48 @@ function getMealById(meal_id) {
     }
 }
 
-function deleteMealFood(food) {
-    console.log(food);
+function findMealServingIndices(meal_serving_id) {
+    for (let i = 0; i < meals.value.length; ++i) {
+        for (let j = 0; j < meals.value[i].foods.length; ++j) {
+            if (meals.value[i].foods[j].meal_serving_id == meal_serving_id)
+                return [i, j];
+        }
+   }
+
+   return null;
+}
+
+function deleteMealServing() {
+    let food = deleteMealFood.value;
+    let food_indices = findMealServingIndices(food.meal_serving_id);
+    deleteMealFood.value = null;
+    if (!food_indices) {
+        errorStore.msgs.push("Failed to find serving in meals");
+        return;
+    }
+
+    let deleteMealServingForm = new FormData();
+    deleteMealServingForm.append("meal_serving_id", food.meal_serving_id);
+    axios.post("/api/delete_meal_serving", deleteMealServingForm)
+    .then(function (response) {
+        if (response.data.err) {
+            errorStore.msgs.push(response.data.err);
+            return;
+        }
+
+        meals.value[food_indices[0]].foods.splice(food_indices[1], 1);
+    })
+    .catch(function (err) {
+        errorStore.msgs.push("Failed to connect to the server (/api/delete_meal_serving)");
+    });
 }
 
 function editMealFood(food) {
     console.log(food);
-
 }
 
 function viewMealFood(food) {
     console.log(food);
-
 }
 
 updateUserInfo();
@@ -280,10 +312,11 @@ sessionStorage.removeItem("meal_id");
                 <ModalDuplicateDiet @cancel-duplicate="showDuplicateDiet = false" @duplicate-diet="duplicateCurDiet" v-if="showDuplicateDiet" :diet="diets[curDietIndex]"/>
             </div>
             <div>
-                <Meal v-for="meal in meals" @delete-meal="(id) => deleteMealId = id" @delete-meal-food="deleteMealFood" @edit-meal-food="editMealFood" @view-meal-food="viewMealFood" :meal="meal" class="mt-8"/>
+                <Meal v-for="meal in meals" @delete-meal="(id) => deleteMealId = id" @delete-meal-food="(food) => deleteMealFood = food" @edit-meal-food="editMealFood" @view-meal-food="viewMealFood" :meal="meal" class="mt-8"/>
                 <button id="btn_add_meal" @click="showAddMeal = true" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
+                <ModalDeleteMealFood v-if="deleteMealFood" :food="deleteMealFood" @cancel-delete="deleteMealFood = null" @delete-meal-food="deleteMealServing"/>
             </div>
             <NutritionTable :meals="meals" :userInfo="userInfo" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
         </div>

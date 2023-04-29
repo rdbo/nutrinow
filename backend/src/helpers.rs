@@ -202,3 +202,17 @@ pub fn calculate_age(date : &NaiveDate) -> u32 {
         None => 0
     }
 }
+
+pub async fn meal_from_meal_serving(meal_serving_id : i32, db : &mut PoolConnection<Postgres>) -> Result<i32, &'static str> {
+    let query_meal_id = async {
+        sqlx::query("SELECT meal_id FROM meal_serving WHERE id = $1")
+            .bind(meal_serving_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    match query_meal_id.await {
+        Ok(r) => Ok(r.try_get("meal_id").unwrap()),
+        Err(_) => Err("Failed to query meal id from meal serving")
+    }
+}

@@ -71,11 +71,11 @@ const nutritionTable = computed(() => {
                     <td class="border-r-2 border-gray-700 font-bold">{{ nutrient.name }}</td>
                     <td class="border-r-2 border-gray-700">
                         <span v-if="nutrient.min_desired !== null">{{ nutrient.min_desired }}{{ nutrient.unit }}</span>
-                        <span v-else>N/A</span>
+                        <span class="mx-2" v-else>-</span>
                     </td>
                     <td class="border-r-2 border-gray-700">
                         <span v-if="nutrient.max_desired !== null">{{ nutrient.max_desired }}{{ nutrient.unit }}</span>
-                        <span v-else>N/A</span>
+                        <span class="mx-2" v-else>-</span>
                     </td>
                     <td>{{ nutrient.amount }}{{ nutrient.unit }}</td>
                 </tr>
