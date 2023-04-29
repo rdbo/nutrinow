@@ -480,7 +480,7 @@ async fn api_delete_diet(data : Form<DeleteDietForm>, cookies : &CookieJar<'_>, 
     }
 
     let delete_diet = async {
-        sqlx::query("DELETE FROM meal_serving WHERE meal_id IN (SELECT meal_serving.id FROM meal_serving JOIN meal ON meal.id = meal_serving.meal_id WHERE diet_id = $1)")
+        sqlx::query("DELETE FROM meal_serving WHERE meal_id IN (SELECT meal_serving.meal_id FROM meal_serving JOIN meal ON meal.id = meal_serving.meal_id WHERE diet_id = $1)")
             .bind(data.diet_id)
             .execute(&mut *db)
             .await
