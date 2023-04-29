@@ -9,6 +9,7 @@ const props = defineProps(["food"]);
 const emit = defineEmits(["close", "add-food"]);
 const curServingIndex = ref(0);
 const servingAmount = ref(props.food.servings[curServingIndex.value].amount);
+const formServingAmoutn = ref(null);
 const nutrientList = computed(() => {
     return getServingNutrients(props.food.servings, curServingIndex.value);
 });
@@ -44,7 +45,7 @@ function updateCurServing(index) {
                                             <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900 my-2">{{ food.name }}</DialogTitle>
                                             <div class="inline-flex">
                                                 <div class="flex flex-col">
-                                                    <input v-model="servingAmount" class="grow text-center w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
+                                                    <input ref="formServingAmount" @input="servingAmount = formServingAmount.value" class="grow text-center w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
                                                 </div>
                                                 <ServingDropdown @update-cur-serving="updateCurServing" :servings="food.servings" :curServingIndex="curServingIndex"/>
                                             </div>

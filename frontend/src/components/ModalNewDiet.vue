@@ -5,6 +5,7 @@ import { ExclamationCircleIcon } from '@heroicons/vue/24/outline';
 
 const emit = defineEmits(["cancel-new", "new-diet"]);
 const dietName = ref("");
+const formDietName = ref(null);
 </script>
 
 <template>
@@ -27,7 +28,7 @@ const dietName = ref("");
                                         <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900">New Diet</DialogTitle>
                                         <div class="mt-2 text-lg">
                                             <p class="text-gray-500">Name of your diet:</p>
-                                            <input class="border-gray-400 border-2 rounded-md px-1 py-1" v-model="dietName"/>
+                                            <input ref="formDietName" @input="dietName = formDietName.value" class="border-gray-400 border-2 rounded-md px-1 py-1"/>
                                         </div>
                                     </div>
                                 </div>
