@@ -114,8 +114,11 @@ function deleteCurDiet() {
 
         let oldIndex = curDietIndex.value;
         curDietIndex.value = 0;
+        console.log("test");
         diets.value.splice(oldIndex, 1);
-        updateCurDiet(curDietIndex.value);
+        console.log("test2");
+        if (diets.value.length > 0)
+            updateCurDiet(curDietIndex.value);
     })
     .catch(function (err) {
         errorStore.msgs.push("Failed to connect to the server (/api/delete_diet)");
