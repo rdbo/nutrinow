@@ -193,6 +193,10 @@ function updateDiets(useLast = false) {
         }
 
         diets.value = response.data.diets;
+        if (!diets.value.length) {
+            curDietIndex.value = 0;
+            return;
+        }
 
         let curDietCookie = localStorage.getItem("curDiet");
         let newCurDietIndex = 0;
@@ -311,14 +315,18 @@ sessionStorage.removeItem("meal_id");
                 <ModalDeleteDiet @cancel-delete="showDeleteDiet = false" @delete-diet="deleteCurDiet" v-if="showDeleteDiet" :diet="diets[curDietIndex]"/>
                 <ModalDuplicateDiet @cancel-duplicate="showDuplicateDiet = false" @duplicate-diet="duplicateCurDiet" v-if="showDuplicateDiet" :diet="diets[curDietIndex]"/>
             </div>
-            <div>
+            <div v-if="diets.length">
                 <Meal v-for="meal in meals" @delete-meal="(id) => deleteMealId = id" @delete-meal-food="(food) => deleteMealFood = food" @edit-meal-food="editMealFood" @view-meal-food="viewMealFood" :meal="meal" class="mt-8"/>
                 <button id="btn_add_meal" @click="showAddMeal = true" class="text-xl bg-orange-300 px-8 py-4 border-2 border-gray-700 rounded-md my-4 w-full md:w-auto">Add Meal</button>
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
                 <ModalDeleteMealFood v-if="deleteMealFood" :food="deleteMealFood" @cancel-delete="deleteMealFood = null" @delete-meal-food="deleteMealServing"/>
             </div>
-            <NutritionTable :meals="meals" :userInfo="userInfo" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
+            <div v-else class="flex flex-col justify-center items-center text-2xl text-gray-500 text-center">
+                <h1>No Diets Found</h1>
+                <h2>Try creating a new diet using the Dashboard Menu</h2>
+            </div>
+            <NutritionTable v-if="diets.length" :meals="meals" :userInfo="userInfo" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
         </div>
     </div>
 </template>
