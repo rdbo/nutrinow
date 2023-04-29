@@ -17,10 +17,11 @@ const nutrientList = computed(() => {
 function updateCurServing(index) {
     curServingIndex.value = index;
     let serving = props.food.servings[curServingIndex.value];
-    if (!serving.relative)
+    if (!serving.relative) {
         servingAmount.value = serving.amount;
-    else
+    } else {
         servingAmount.value = 1;
+    }
 }
 </script>
 
@@ -45,7 +46,7 @@ function updateCurServing(index) {
                                             <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900 my-2">{{ food.name }}</DialogTitle>
                                             <div class="inline-flex">
                                                 <div class="flex flex-col">
-                                                    <input ref="formServingAmount" @input="servingAmount = formServingAmount.value" class="grow text-center w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
+                                                    <input ref="formServingAmount" v-model="servingAmount" @input="servingAmount = formServingAmount.value" class="grow text-center w-28 px-2 py-2 mx-2 border-gray-300 border-2 rounded-md" placeholder="Amount" type="number" min="0"/>
                                                 </div>
                                                 <ServingDropdown @update-cur-serving="updateCurServing" :servings="food.servings" :curServingIndex="curServingIndex"/>
                                             </div>
