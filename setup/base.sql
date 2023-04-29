@@ -146,40 +146,6 @@ INSERT INTO diet(name, user_id) VALUES
     ('Cutting', 1),
     ('Bulking', 1);
 
-INSERT INTO diet_nutrition(diet_id, nutrient_id, daily_intake, relative) VALUES
-    (1, 1, 100, true),
-    (1, 2, 100, true),
-    (1, 3, 100, true),
-    (1, 4, 100, false),
-    (1, 5, 100, false),
-    (1, 6, 100, false),
-    (1, 7, 100, false),
-    (1, 8, 100, false),
-    (1, 9, 100, false),
-    (1, 10, 100, false),
-    (1, 11, 100, false),
-    (1, 12, 100, false),
-    (1, 13, 100, false),
-    (1, 14, 100, false),
-    (1, 15, 100, false),
-    (1, 16, 100, false),
-    (1, 17, 100, false),
-    (1, 18, 100, false),
-    (1, 19, 100, false),
-    (1, 20, 100, false),
-    (1, 21, 100, false),
-    (1, 22, 100, false),
-    (1, 23, 100, false),
-    (1, 24, 100, false),
-    (1, 25, 100, false),
-    (1, 26, 100, false),
-    (1, 27, 100, false),
-    (1, 28, 100, false),
-    (1, 29, 100, false),
-    (1, 30, 100, false),
-    (1, 31, 100, false),
-    (1, 32, 100, false);
-
 INSERT INTO meal(name, diet_id) VALUES
     ('Breakfest', 1),
     ('Lunch', 1);
