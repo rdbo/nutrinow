@@ -30,7 +30,7 @@ const emit = defineEmits(["update-cur-diet", "new-diet", "delete-cur-diet", "edi
                            <p>New Diet</p>
                        </div>
                     </MenuItem>
-                    <MenuItem v-slot="{ active }">
+                    <MenuItem v-if="diets.length > 0" v-slot="{ active }">
                        <div @click="$emit('duplicate-diet')" class="cursor-pointer flex items-center" :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-lg']">
                            <DocumentDuplicateIcon class="w-6 mr-1"/>
                            <p>Duplicate Diet</p>
