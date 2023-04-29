@@ -140,7 +140,7 @@ pub async fn duplicate_diet(user_id : i32, diet_id : i32, diet_name : &str, db :
     };
 
     let query_copy_nutrition = async {
-        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) SELECT $1, nutrient_id, daily_intake, relative FROM diet_nutrition WHERE diet_id = $2")
+        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) SELECT $1, nutrient_id, min_intake, max_intake, relative FROM diet_nutrition WHERE diet_id = $2")
             .bind(new_diet_id)
             .bind(diet_id)
             .execute(&mut *db)
