@@ -15,6 +15,7 @@ const searchStatus = ref("");
 const searchQuery = ref(null);
 const searchResults = ref([]);
 const selectedFood = ref(null);
+var controller = null;
 
 function searchFood(e) {
     e.preventDefault();
@@ -27,8 +28,22 @@ function searchFood(e) {
 function updateResults() {
     let foodName = searchQuery.value;
     searchStatus.value = "Searching for: " + foodName + "...";
-    axios.get("/api/food_search/" + foodName)
+
+    // Abort previous incomplete request
+    if (controller) {
+        controller.abort();
+        controller = null;
+    }
+
+    controller = new AbortController();
+
+    axios.get("/api/food_search/" + foodName, {
+        signal: controller.signal
+    })
     .then(function (response) {
+        // Request finished, unset the abort controller
+        controller = null;
+
         if (response.data.err) {
             searchStatus.value = "";
             errorStore.msgs.push(response.data.err);
@@ -44,9 +59,15 @@ function updateResults() {
         searchResults.value = response.data.matches;
     })
     .catch(function (err) {
+        // Request was canceled, not an actual error
+        if (err.code == "ERR_CANCELED")
+            return;
+        // Request finished, unset the abort controller
+        controller = null;
+
         errorStore.msgs.push("Failed to connect to the server (/api/food_search/<foodName>)");
         searchStatus.value = "";
-    });
+    }); 
 }
 
 function addFoodToMeal(servingId, amount) {
