@@ -24,8 +24,7 @@ use rocket_db_pools::{
 };
 
 use std::{
-    path::PathBuf,
-    collections::HashMap
+    path::PathBuf
 };
 
 mod helpers;
@@ -538,141 +537,6 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mu
             .await
     };
 
-    let mut default_nutrition = HashMap::new();
-    /* Daily Dietary Intake Estimates (for teens and adults only!). Main Source (consumer fact sheets): https://ods.od.nih.gov */
-    /* TODO: Add these values to database, they don't belong in source code! */
-    default_nutrition.insert("Protein", (1.0, None, true));
-    default_nutrition.insert("Carbohydrates", (2.5, None, true));
-    default_nutrition.insert("Fats", (1.0, None, true));
-    default_nutrition.insert("Sugars", (0.0, Some(30.0), false)); // TODO: Adjust
-    default_nutrition.insert("Fiber", (
-        if user_info.gender == "M" {
-            38.0
-        } else {
-            25.0
-        }
-    , None, false));
-    default_nutrition.insert("Saturated Fat", (10.0, None, false));
-    default_nutrition.insert("Unsaturated Fat", (20.0, None, false));
-    default_nutrition.insert("Trans Fat", (2.0, None, false));
-    default_nutrition.insert("Vitamin A", (
-        if user_age < 18 {
-            600.0
-        } else {
-            if user_info.gender == "M" { 900.0 }
-            else { 700.0 }
-        }
-    , None, false));
-    default_nutrition.insert("Vitamin B1", (if user_info.gender == "M" { 1.2 } else { 1.1 }, None, false));
-    default_nutrition.insert("Vitamin B2", (if user_info.gender == "M" { 1.3 } else { 1.1 }, None, false));
-    default_nutrition.insert("Vitamin B3", (if user_info.gender == "M" { 16.0 } else { 14.0 }, None, false));
-    default_nutrition.insert("Vitamin B5", (5.0, None, false));
-    default_nutrition.insert("Vitamin B6", (1.3, None, false));
-    default_nutrition.insert("Vitamin B7", (if user_age <= 18 { 25.0 } else { 3.0 }, None, false));
-    default_nutrition.insert("Vitamin B9", (400.0, None, false));
-    default_nutrition.insert("Vitamin B12", (2.4, None, false));
-    default_nutrition.insert("Vitamin C", (
-        if user_info.gender == "M" {
-            if user_age <= 18 {
-                75.0
-            } else {
-                90.0
-            }
-        } else {
-            if user_age <= 18 {
-                65.0
-            } else {
-                75.0
-            }
-        }
-    , None, false));
-    default_nutrition.insert("Vitamin D", (15.0, None, false));
-    default_nutrition.insert("Vitamin E", (15.0, None, false));
-    default_nutrition.insert("Vitamin K", (
-        if user_age <= 18 {
-            75.0
-        } else {
-            if user_info.gender == "M" {
-                120.0
-            } else {
-                90.0
-            }
-        }
-    , None, false));
-    default_nutrition.insert("Calcium", (
-        if user_age <= 18 {
-            1300.0
-        } else {
-            1000.0
-        }
-    , None, false));
-    default_nutrition.insert("Iron", (
-        if user_age <= 18 {
-            if user_info.gender == "M" {
-                11.0
-            } else {
-                15.0
-            }
-        } else {
-            if user_info.gender == "M" {
-                8.0
-            } else {
-                18.0
-            }
-        }
-    , None, false));
-    default_nutrition.insert("Magnesium", (
-        if user_info.gender == "M" {
-            410.0
-        } else {
-            if user_age <= 18 {
-                360.0
-            } else {
-                310.0
-            }
-        }
-    , None, false));
-    default_nutrition.insert("Phosphorus", (
-        if user_age <= 18 {
-            1250.0
-        } else {
-            700.0
-        }
-    , None, false));
-    default_nutrition.insert("Potassium", (
-        if user_age <= 18 {
-            if user_info.gender == "M" {
-                3000.0
-            } else {
-                2300.0
-            }
-        } else {
-            if user_info.gender == "M" {
-                3400.0
-            } else {
-                2600.0
-            }
-        }
-    , None, false));
-    default_nutrition.insert("Sodium", (1500.0, None, false));
-    default_nutrition.insert("Zinc", (
-        if user_info.gender == "M" {
-            11.0
-        } else {
-            8.0
-        }
-    , None, false));
-    default_nutrition.insert("Copper", (900.0, None, false));
-    default_nutrition.insert("Manganese", (
-        if user_info.gender == "M" {
-            400.0
-        } else {
-            310.0
-        }
-    , None, false));
-    default_nutrition.insert("Selenium", (55.0, None, false));
-    default_nutrition.insert("Water", (0.033 * 1000.0 /* convert from l to ml */, None, true));
-
     let new_diet = match query_new_diet.await {
         Ok(r) => r,
         Err(_) => return Json(NewDietResponse::err("Failed to add new diet"))
@@ -680,13 +544,32 @@ async fn api_new_diet(data : Form<NewDietForm<'_>>, cookies : &CookieJar<'_>, mu
 
     let diet_id : i32 = new_diet.try_get("id").unwrap();
 
-    for (key, value) in default_nutrition {
-        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) VALUES ($1, (SELECT id FROM nutrient WHERE name = $2 LIMIT 1), $3, $4, $5)")
+    let query_default_nutrition = async {
+        sqlx::query("SELECT nutrient_id, min_intake, max_intake, relative FROM default_nutrition WHERE gender = $1 AND $2 >= age_min AND ($3 < age_max OR age_max IS NULL)")
+            .bind(user_info.gender)
+            .bind(user_age)
+            .bind(user_age)
+            .fetch_all(&mut *db)
+            .await
+    };
+
+    let default_nutrition = match query_default_nutrition.await {
+        Ok(r) => r,
+        Err(_) => return Json(NewDietResponse::err("Failed to query default nutrition"))
+    };
+
+    for nutrient in default_nutrition {
+        let nutrient_id : i32 = nutrient.try_get("nutrient_id").unwrap();
+        let min_intake : Option<f64> = nutrient.try_get("min_intake").ok();
+        let max_intake : Option<f64> = nutrient.try_get("max_intake").ok();
+        let relative : bool = nutrient.try_get("relative").unwrap();
+
+        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) VALUES ($1, $2, $3, $4, $5)")
             .bind(diet_id)
-            .bind(key)
-            .bind(value.0)
-            .bind(value.1)
-            .bind(value.2)
+            .bind(nutrient_id)
+            .bind(min_intake)
+            .bind(max_intake)
+            .bind(relative)
             .execute(&mut *db)
             .await
             .ok();
