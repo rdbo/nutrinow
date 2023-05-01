@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { getNutrientsFromMealFood, getDisplayNutrients } from "../composables/foods.js";
 import { TrashIcon } from "@heroicons/vue/20/solid";
 import { PencilSquareIcon } from "@heroicons/vue/20/solid";
@@ -6,8 +7,12 @@ import { PlusIcon } from "@heroicons/vue/20/solid";
 
 const emit = defineEmits(["edit-meal-food", "delete-meal-food", "view-meal-food"]);
 const props = defineProps(["food"]);
-const nutrients = getNutrientsFromMealFood(props.food);
-const displayNutrients = getDisplayNutrients(nutrients);
+const nutrients = computed(() => {
+    return getNutrientsFromMealFood(props.food);
+})
+const displayNutrients = computed(() => {
+    return getDisplayNutrients(nutrients.value);
+});
 </script>
 
 <template>

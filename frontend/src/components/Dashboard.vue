@@ -369,7 +369,7 @@ sessionStorage.removeItem("meal_id");
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
                 <ModalDeleteMealFood v-if="deleteMealFood" :food="deleteMealFood" @cancel-delete="deleteMealFood = null" @delete-meal-food="deleteMealServing"/>
                 <ModalSpinner v-if="editMealFoodRef && !editFoodViewerRef"/>
-                <ModalFoodViewer v-if="editFoodViewerRef" :food="editFoodViewerRef" @close="editFoodViewerRef = null" @add-food="editMealFood"/>
+                <ModalFoodViewer v-if="editFoodViewerRef" :food="editFoodViewerRef" @close="editMealFoodRef = null; editFoodViewerRef = null" @add-food="editMealFood"/>
             </div>
             <div v-else class="flex flex-col justify-center items-center text-2xl text-gray-500 text-center">
                 <h1>No Diets Found</h1>
