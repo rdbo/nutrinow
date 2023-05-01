@@ -1,7 +1,5 @@
 /*
  * TODO:
-     Add helper function for querying user ID from session ID
-     Add helper function for getting session ID from cookie jar
      Add helper function for getting serving nutrients
      Limit amount of servings per food (too many would slow down the server)
  */
@@ -189,6 +187,7 @@ struct ServingNutrient {
     unit: String
 }
 
+/*
 #[derive(Serialize)]
 struct FoodInfo {
     id: i32,
@@ -291,25 +290,6 @@ async fn api_foods(mut db : Connection<DbHandle>) -> Json<FoodList> {
     }
 
     Json(food_list)
-}
-
-// Food Request
-/*
-#[get("/nutrients/<serving_id>")]
-async fn api_food(food_id : i32, mut db : Connection<DbHandle>) -> Json {
-    let query_food = async {
-        sqlx::query("SELECT food.name, serving.amount, serving.unit, nutrient.name, serving_nutrient.amount, nutrient.unit FROM food JOIN serving ON serving.food_id = food.id JOIN serving_nutrient ON serving_nutrient.serving_id = serving.id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE food.id = $1")
-        .bind(id)
-        .execute(&mut *db)
-        .await
-    };
-
-    let food = match query_food.await {
-        Ok(r) => r,
-        Err(_) => return Json("failed to get food information")
-    };
-
-    Json("")
 }
 */
 
@@ -1188,7 +1168,7 @@ async fn api_food_search(food_name : String, mut db : Connection<DbHandle>) -> J
     food_name_search.insert(0, '%');
 
     let query_food_matches = async {
-        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 ORDER BY (CASE WHEN name ILIKE $2 THEN 1 WHEN name ILIKE $3 THEN 2 ELSE 3 END) ASC LIMIT 50")
+        sqlx::query("SELECT id, name FROM food WHERE name ILIKE $1 ORDER BY (CASE WHEN name ILIKE $2 THEN 1 WHEN name ILIKE $3 THEN 2 ELSE 3 END) ASC LIMIT 25")
             .bind(food_name_search)
             .bind(best_search)
             .bind(second_best_search)
@@ -1426,6 +1406,165 @@ async fn api_duplicate_diet(data : Form<DuplicateDietForm<'_>>, cookies : &Cooki
     }
 }
 
+// Food Request
+#[derive(Serialize)]
+struct FoodResponse {
+    food : Option<Food>,
+    err : &'static str
+}
+
+impl FoodResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { food: None, err: msg }
+    }
+
+    fn ok(food : Food) -> Self {
+        Self { food: Some(food), err: "" }
+    }
+}
+
+#[get("/food/<food_id>")]
+async fn api_food(food_id : i32, mut db : Connection<DbHandle>) -> Json<FoodResponse> {
+    let query_food = async {
+        sqlx::query("SELECT id, name FROM food WHERE id = $1")
+            .bind(food_id)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let food_match = match query_food.await {
+        Ok(r) => r,
+        Err(_) => return Json(FoodResponse::err("Failed to query food"))
+    };
+
+    // TODO: Deduplicate this code
+    let food_id : i32 = food_match.try_get("id").unwrap();
+    let food_name : String = food_match.try_get("name").unwrap();
+
+    let query_food_servings = async {
+        sqlx::query("SELECT id, amount, unit, relative FROM serving WHERE food_id = $1")
+            .bind(food_id)
+            .fetch_all(&mut *db)
+            .await
+    };
+    let food_servings = match query_food_servings.await {
+        Ok(r) => r,
+        Err(_) => return Json(FoodResponse::err("Failed to query food servings"))
+    };
+
+    let mut food_serving_list : Vec<Serving> = vec![];
+    for food_serving in food_servings {
+        let serving_id : i32 = food_serving.try_get("id").unwrap();
+        let serving_amount : f64 = food_serving.try_get("amount").unwrap();
+        let serving_unit : String = food_serving.try_get("unit").unwrap();
+        let serving_relative : Option<i32> = food_serving.try_get("relative").unwrap();
+
+        let query_nutrients = async {
+            sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
+            .bind(serving_id)
+            .fetch_all(&mut *db)
+            .await
+        };
+
+        let nutrients = match query_nutrients.await {
+            Ok(r) => r,
+            Err(_) => continue
+        };
+
+        let mut nutrient_list : Vec<ServingNutrient> = vec![];
+        if let None = serving_relative {
+            for nutrient in nutrients {
+                let nutrient_name : String = nutrient.try_get("name").unwrap();
+                let nutrient_amount : f64 = nutrient.try_get("amount").unwrap();
+                let nutrient_unit : String = nutrient.try_get("unit").unwrap();
+                let nutrient_item = ServingNutrient {
+                    name : nutrient_name,
+                    amount : nutrient_amount,
+                    unit : nutrient_unit
+                };
+                nutrient_list.push(nutrient_item);
+            }
+        }
+
+        let serving = Serving {
+            id: serving_id,
+            amount: serving_amount,
+            unit: serving_unit,
+            nutrients: nutrient_list,
+            relative: serving_relative
+        };
+
+        food_serving_list.push(serving);
+    }
+
+    let food = Food {
+        id: food_id,
+        name: food_name,
+        servings: food_serving_list
+    };
+
+    Json(FoodResponse::ok(food))
+}
+
+// Edit Meal Food Request
+#[derive(FromForm)]
+struct EditMealServingForm {
+    meal_serving_id : i32,
+    serving_id : i32,
+    amount : f64
+}
+
+#[derive(Serialize)]
+struct EditMealServingResponse {
+    err : &'static str
+}
+
+impl EditMealServingResponse {
+    fn err(msg : &'static str) -> Self {
+        Self { err: msg }
+    }
+
+    fn ok() -> Self {
+        Self { err: "" }
+    }
+}
+
+#[post("/edit_meal_serving", data = "<data>")]
+async fn api_edit_meal_serving(data : Form<EditMealServingForm>, cookies : &CookieJar<'_>, mut db : Connection<DbHandle>) -> Json<EditMealServingResponse> {
+    let user_id = match user_id_from_cookies(cookies, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(EditMealServingResponse::err(s))
+    };
+
+    let meal_id = match meal_from_meal_serving(data.meal_serving_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(EditMealServingResponse::err(s))
+    };
+
+    let meal_owner_id = match meal_owner_id(meal_id, &mut *db).await {
+        Ok(id) => id,
+        Err(s) => return Json(EditMealServingResponse::err(s))
+    };
+
+    if meal_owner_id != user_id {
+        return Json(EditMealServingResponse::err("User does not own meal"));
+    }
+
+    let query_edit_meal_serving = async {
+        sqlx::query("UPDATE meal_serving SET serving_id = $1, amount = $2 WHERE id = $3")
+            .bind(data.serving_id)
+            .bind(data.amount)
+            .bind(data.meal_serving_id)
+            .execute(&mut *db)
+            .await
+    };
+
+    match query_edit_meal_serving.await {
+        Ok(_) => Json(EditMealServingResponse::ok()),
+        Err(_) => Json(EditMealServingResponse::err("Failed to edit meal serving"))
+    }
+}
+
 // Handle Vue routes that are not static files
 #[get("/<_..>", rank = 12)]
 async fn vue_routes() -> Option<NamedFile> {
@@ -1439,5 +1578,5 @@ async fn rocket() -> _ {
         .attach(DbHandle::init())
         .mount("/", FileServer::from(relative!("static")))
         .mount("/", routes![vue_routes])
-        .mount("/api", routes![api_login, api_register, api_logout, api_foods, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving, api_delete_meal_serving, api_duplicate_diet])
+        .mount("/api", routes![api_login, api_register, api_logout, api_diets, api_delete_diet, api_new_diet, api_edit_diet, api_meals, api_user, api_add_meal, api_delete_meal, api_nutrients, api_diet_nutrition, api_food_search, api_add_meal_serving, api_delete_meal_serving, api_duplicate_diet, api_food, api_edit_meal_serving])
 }
