@@ -110,8 +110,11 @@ CREATE TABLE default_nutrition (
 
 /* TODO: Add nutrient categories */
 
+/* Requires 'pgcrypto', generally comes in a package such as postgresql-contrib */
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES
-    ('Admin', 'admin@localhost', 'M', '70', '1970-01-01', 'f1884986dc7b68fb7ac18c5a7dd2bea6467565300378713fca1fe468bc4be6a6'); /* Password: nutrinow_admin */
+    ('Admin', 'admin@localhost', 'M', '70', '1970-01-01', (SELECT SUBSTRING(DIGEST('nutrinow_admin', 'sha256')::VARCHAR FROM 3)));
 
 INSERT INTO nutrient(name, unit) VALUES
     /* Macronutrients */
