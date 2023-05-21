@@ -1,6 +1,6 @@
 {
   "name": "nutrinow",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "concurrently --kill-others \"npm run serve\" \"npm run watch-css\"",
