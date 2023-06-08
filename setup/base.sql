@@ -108,6 +108,12 @@ CREATE TABLE default_nutrition (
     UNIQUE(nutrient_id, gender, age_min, age_max)
 );
 
+CREATE TABLE credentials (
+    user_id SERIAL,
+    password VARCHAR(255) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user_account(id)
+);
+
 /* TODO: Add nutrient categories */
 
 /* Requires 'pgcrypto', generally comes in a package such as postgresql-contrib */

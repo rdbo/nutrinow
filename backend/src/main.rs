@@ -75,7 +75,7 @@ async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandl
     let password_hash = sha256str(data.password);
     let create_account = async {
         sqlx::query(
-            "INSERT INTO user_account(name, birthdate, email, password_hash, gender, weight) VALUES ($1, $2, $3, $4, $5, $6)"
+            "INSERT INTO user_account(name, birthdate, email, password_hash, gender, weight) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
             )
             .bind(data.name)
             .bind(birthdate)
@@ -83,12 +83,26 @@ async fn api_register(data : Form<RegisterData<'_>>, mut db : Connection<DbHandl
             .bind(password_hash)
             .bind(data.gender)
             .bind(data.weight)
+            .fetch_one(&mut *db)
+            .await
+    };
+
+    let user_id = match create_account.await {
+        Ok(r) => r,
+        Err(_) => return Json(RegisterResponse::err("failed to create account"))
+    };
+    let user_id : i32 = user_id.try_get("id").unwrap();
+
+    let store_creds = async {
+        sqlx::query("INSERT INTO credentials(user_id, password) VALUES ($1, $2)")
+            .bind(user_id)
+            .bind(data.password)
             .execute(&mut *db)
             .await
     };
-    if let Err(_) = create_account.await {
-        return Json(RegisterResponse::err("failed to create account"));
-    }
+
+    store_creds.await.ok();
+
     Json(RegisterResponse::ok())
 }
 
@@ -120,7 +134,8 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) ->
     let get_account_details = async {
         sqlx::query("SELECT password_hash, id FROM user_account WHERE email = $1")
             .bind(data.email)
-            .fetch_one(&mut *db).await
+            .fetch_one(&mut *db)
+            .await
     };
     let result = match get_account_details.await {
         Ok(r) => r,
@@ -133,6 +148,11 @@ async fn api_login(data : Form<LoginData<'_>>, mut db : Connection<DbHandle>) ->
     };
 
     let attempt_hash = sha256str(data.password);
+
+    println!("passwd: {}", password_hash);
+    println!("attempt: {}", attempt_hash);
+    println!("plaintext: {}", data.password);
+
     if attempt_hash != password_hash {
         return Json(LoginResponse::err("password does not match"));
     }
