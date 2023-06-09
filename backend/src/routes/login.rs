@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use log::info;
 use sqlx::PgPool;
 use crate::{
-    models::JsonResponse,
+    models::{ApiResponse, ApiError},
     utils::database::authenticate_user
 };
 
@@ -18,19 +18,13 @@ struct LoginResponse {
     pub session_id : String
 }
 
-#[derive(Serialize)]
-enum Response {
-    Success(LoginResponse),
-    Failure(JsonResponse)
-}
-
 #[post("/api/login")]
 pub async fn api_login(form : web::Form<LoginForm>, dbpool : web::Data<PgPool>) -> impl Responder {
     info!("{:?}", form);
     let session_id = match authenticate_user(&form, &dbpool).await {
         Ok(session_id) => session_id,
-        Err(_) => return web::Json(Response::Failure(JsonResponse::err("Login attempt failed".to_string())))
+        Err(_) => return web::Json(ApiResponse::err(ApiError::AuthFailed))
     };
 
-    web::Json(Response::Success(LoginResponse { session_id }))
+    web::Json(ApiResponse::Success(LoginResponse { session_id }))
 }

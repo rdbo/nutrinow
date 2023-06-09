@@ -4,7 +4,7 @@ use log::info;
 use chrono::NaiveDate;
 use sqlx::PgPool;
 use crate::{
-    models::JsonResponse,
+    models::{ApiResponse, ApiError},
     utils::database::create_user_account
 };
 
@@ -14,7 +14,7 @@ pub struct RegisterForm {
     pub birthdate : NaiveDate,
     pub email : String,
     pub password : String,
-    pub gender : String,
+    pub gender : char,
     pub weight : f64
 }
 
@@ -22,7 +22,7 @@ pub struct RegisterForm {
 pub async fn api_register(form : web::Form<RegisterForm>, dbpool : web::Data<PgPool>) -> impl Responder {
     info!("{:?}", form);
     match create_user_account(&form, &dbpool).await {
-        Ok(_) => web::Json(JsonResponse::ok()),
-        Err(_) => web::Json(JsonResponse::err("Failed to create user account".to_string()))
+        Ok(_) => web::Json(ApiResponse::ok("OK")),
+        Err(_) => web::Json(ApiResponse::err(ApiError::RegistrationFailed))
     }
 }

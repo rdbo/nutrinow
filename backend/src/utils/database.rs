@@ -4,7 +4,8 @@ use crate::{
         register::RegisterForm,
         login::LoginForm
     },
-    utils::hash::sha256str
+    utils::hash::sha256str,
+    models::Diet
 };
 use uuid::Uuid;
 use anyhow::{Error, Result};
@@ -16,7 +17,7 @@ pub async fn create_user_account(data : &RegisterForm, dbpool : &PgPool) -> Resu
     let query_result = sqlx::query("INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id")
         .bind(&data.name)
         .bind(&data.email)
-        .bind(&data.gender)
+        .bind(data.gender.to_string())
         .bind(data.weight)
         .bind(&data.birthdate)
         .bind(&password_hash)
@@ -62,4 +63,23 @@ pub async fn authenticate_user(data : &LoginForm, dbpool : &PgPool) -> Result<St
         .await?;
 
     Ok(session_id.to_string())
+}
+
+pub async fn get_session_user_id(session_id : &Uuid, dbpool : &PgPool) -> Option<i32> {
+    let query_result = sqlx::query("SELECT user_id FROM user_session WHERE id = $1")
+        .bind(session_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    query_result.try_get::<i32, _>("user_id").ok()
+}
+
+pub async fn fetch_user_diets(user_id : i32, dbpool : &PgPool) -> Result<Vec<Diet>> {
+    let diets = sqlx::query_as::<_, Diet>("SELECT * FROM diet WHERE user_id = $1")
+        .bind(user_id)
+        .fetch_all(dbpool)
+        .await?;
+
+    Ok(diets)
 }

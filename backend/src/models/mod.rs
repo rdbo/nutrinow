@@ -1,2 +1,4 @@
-mod json_response;
-pub use json_response::JsonResponse;
+mod api_response;
+mod diet;
+pub use api_response::*;
+pub use diet::*;
