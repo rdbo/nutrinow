@@ -83,3 +83,12 @@ pub async fn fetch_user_diets(user_id : i32, dbpool : &PgPool) -> Result<Vec<Die
 
     Ok(diets)
 }
+
+pub async fn delete_session(session_id : Uuid, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("DELETE FROM user_session WHERE id = $1")
+        .bind(session_id)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}

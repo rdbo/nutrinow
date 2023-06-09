@@ -44,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(dbpool.clone()))
             .service(routes::api_register)
             .service(routes::api_login)
+            .service(routes::api_logout)
             .service(routes::api_diets)
             /* Serve index.html on / and on any unmatched routes (necessary to work with Vue.js) */
             .service(root)
