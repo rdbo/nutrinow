@@ -4,13 +4,19 @@ mod models;
 mod utils;
 
 use actix_web::{HttpServer, App, get, Result, HttpRequest, middleware::Logger, web};
-use actix_files::{NamedFile, Files};
+use actix_files::NamedFile;
 use sqlx::postgres::PgPoolOptions;
 use std::path::{Path, PathBuf};
 use settings::Settings;
 
+#[get("/")]
+async fn root() -> Result<NamedFile> {
+    let file_path = Path::new("static").join("index.html");
+    Ok(NamedFile::open(file_path)?)
+}
+
 #[get("/{path:.*}")]
-async fn index(req : HttpRequest) -> Result<NamedFile> {
+async fn files(req : HttpRequest) -> Result<NamedFile> {
     let path : PathBuf = req.match_info().query("path").parse()?;
     let mut file_path = Path::new("static").join(path);
     if !file_path.exists() {
@@ -40,8 +46,8 @@ async fn main() -> std::io::Result<()> {
             .service(routes::api_login)
             .service(routes::api_diets)
             /* Serve index.html on / and on any unmatched routes (necessary to work with Vue.js) */
-            .service(index)
-            .service(Files::new("/", "static").index_file("index.html"))
+            .service(root)
+            .service(files)
     })
         .bind((settings.host, settings.port))?
         .run()
