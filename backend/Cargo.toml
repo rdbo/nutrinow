@@ -6,10 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
+pest_generator = "2.6"
+config = "0.13"
 serde = { version = "1.0", features = ["derive"] }
-uuid  = { version = "0.8", features = ["v4"] }
-chrono = "0.4"
-sqlx = { version = "0.5", features = ["chrono", "uuid"] }
-rocket_db_pools = { version = "0.1.0-rc.2", features = ["sqlx_postgres"] }
-sha2 = "0.10.6"
+sha2 = "0.10"
+log = "0.4"
+env_logger = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+cookie = "0.17"
+actix-web = { version = "4", features = ["cookies"] }
+actix-files = "0.6"
+uuid = "1.3"
+sqlx = { version = "0.6", features = ["runtime-actix-rustls", "chrono", "uuid", "postgres"] }

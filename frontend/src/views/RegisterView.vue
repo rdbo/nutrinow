@@ -39,7 +39,7 @@ function registerHandler(e) {
         return;
     }
 
-    let registerData = new FormData();
+    let registerData = new URLSearchParams();
     registerData.append("name", nameForm.value);
     registerData.append("birthdate", birthdateForm.value);
     registerData.append("email", emailForm.value);
