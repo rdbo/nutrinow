@@ -7,7 +7,7 @@ use std::str::FromStr;
 use crate::utils::database::get_session_user_id;
 use sqlx::PgPool;
 
-pub fn get_session_id(req : &HttpRequest, resp : &mut HttpResponse) -> Option<Uuid> {
+pub fn get_session_id<T>(req : &HttpRequest, resp : &mut HttpResponse<T>) -> Option<Uuid> {
     let removal_cookie = Cookie::named("session_id");
     let cookie = match req.cookie("session_id") {
         Some(c) => c,
@@ -26,9 +26,9 @@ pub fn get_session_id(req : &HttpRequest, resp : &mut HttpResponse) -> Option<Uu
     }
 }
 
-pub async fn get_user_id(req : &HttpRequest, resp : &mut HttpResponse, dbpool : &PgPool) -> Option<i32> {
+pub async fn get_user_id<T>(req : &HttpRequest, resp : &mut HttpResponse<T>, dbpool : &PgPool) -> Option<i32> {
     let removal_cookie = Cookie::named("session_id");
-    let session_id = get_session_id(req, resp)?;
+    let session_id = get_session_id::<T>(req, resp)?;
 
     match get_session_user_id(&session_id, dbpool).await {
         None => {
