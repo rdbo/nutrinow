@@ -1,5 +1,5 @@
-use actix_web::{get, Responder, web, HttpRequest, HttpResponse};
-use serde::{Serialize, Deserialize};
+use actix_web::{get, Responder, web, HttpRequest};
+use serde::Serialize;
 use sqlx::PgPool;
 use crate::{
     models::{ApiResponse, ApiError, Diet},
@@ -8,9 +8,27 @@ use crate::{
         request::get_user_id
     }
 };
-use cookie::CookieJar;
-use uuid::Uuid;
-use log::info;
+
+#[derive(Serialize, Debug)]
+struct DietInfoNutrient {
+    name : String,
+    min_amount : Option<f64>,
+    max_amount : Option<f64>,
+    unit : String,
+    relative : bool
+}
+
+#[derive(Serialize, Debug)]
+struct DietInfo {
+    id : i32,
+    name : String,
+    desired_nutrition : Vec<DietInfoNutrient>
+}
+
+#[derive(Serialize, Debug)]
+struct DietsResponse {
+    diets : Vec<DietInfo>
+}
 
 #[get("/api/diets")]
 pub async fn api_diets(req : HttpRequest, dbpool : web::Data<PgPool>) -> impl Responder {
@@ -24,6 +42,11 @@ pub async fn api_diets(req : HttpRequest, dbpool : web::Data<PgPool>) -> impl Re
         Ok(d) => d,
         Err(_) => return web::Json(ApiResponse::<Vec<Diet>>::err(ApiError::QueryDiets)).respond_to(&req)
     };
+    
+    let diets_info : Vec<DietInfo> = diets
+        .into_iter()
+        .map(|d| { DietInfo { id: d.id, name: d.name, desired_nutrition: vec![] } })
+        .collect();
 
-    web::Json(ApiResponse::ok(diets)).respond_to(&req)
+    web::Json(ApiResponse::ok(DietsResponse { diets: diets_info })).respond_to(&req)
 }
