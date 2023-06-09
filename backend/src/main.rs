@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .app_data(web::Data::new(dbpool.clone()))
             .service(routes::api_register)
+            .service(routes::api_login)
             /* Serve index.html on / and on any unmatched routes (necessary to work with Vue.js) */
             .service(index)
             .service(Files::new("/", "static").index_file("index.html"))

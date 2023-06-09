@@ -21,8 +21,8 @@ pub struct RegisterForm {
 #[post("/api/register")]
 pub async fn api_register(form : web::Form<RegisterForm>, dbpool : web::Data<PgPool>) -> impl Responder {
     info!("{:?}", form);
-    match create_user_account(&dbpool, &form).await {
+    match create_user_account(&form, &dbpool).await {
         Ok(_) => web::Json(JsonResponse::ok()),
-        Err(_) => web::Json(JsonResponse::err("test".to_string()))
+        Err(_) => web::Json(JsonResponse::err("Failed to create user account".to_string()))
     }
 }

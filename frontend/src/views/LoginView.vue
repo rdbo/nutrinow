@@ -19,7 +19,7 @@ function loginHandler(e) {
     e.preventDefault(); // prevent redirection
     waitingLogin.value = true;
 
-    let loginData = new FormData();
+    let loginData = new URLSearchParams();
     loginData.append("email", emailForm.value);
     loginData.append("password", passwordForm.value);
 
