@@ -10,6 +10,7 @@
 
 body {
     font-family: "Itim";
+    background: #ffffff;
 }
 
 /* fix for 'downloadable font: rejected by sanitizer' */
