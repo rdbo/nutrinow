@@ -289,3 +289,14 @@ pub async fn create_diet(user_id : i32, diet_name : &String, dbpool : &PgPool) -
 
     Some(())
 }
+
+pub async fn edit_diet(diet_id : i32, diet_name : &String, dbpool : &PgPool) -> Option<()> {
+    sqlx::query("UPDATE diet SET name = $1 WHERE id = $2")
+        .bind(diet_name)
+        .bind(diet_id)
+        .execute(dbpool)
+        .await
+        .ok()?;
+
+    Some(())
+}

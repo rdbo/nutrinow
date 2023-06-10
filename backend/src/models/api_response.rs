@@ -14,7 +14,8 @@ pub enum ApiError {
     AccessDenied,
     QueryNutrients,
     QueryMeals,
-    CreateDiet
+    CreateDiet,
+    EditDiet
 }
 
 impl ToString for ApiError {
@@ -28,7 +29,8 @@ impl ToString for ApiError {
             ApiError::AccessDenied => "Access denied (user cannot access the requested resource)".to_string(),
             ApiError::QueryNutrients => "Failed to query nutrients (try refreshing the page)".to_string(),
             ApiError::QueryMeals => "Failed to query meals (try refreshing the page)".to_string(),
-            ApiError::CreateDiet => "Failed to create diet (try again)".to_string()
+            ApiError::CreateDiet => "Failed to create diet (try again)".to_string(),
+            ApiError::EditDiet => "Failed to edit diet (try again)".to_string()
         }
     }
 }
