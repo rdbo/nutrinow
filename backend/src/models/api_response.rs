@@ -10,6 +10,8 @@ pub enum ApiError {
     AuthFailed,
     NotLoggedIn,
     QueryDiets,
+    QueryDietNutrition,
+    AccessDenied
 }
 
 impl ToString for ApiError {
@@ -19,6 +21,8 @@ impl ToString for ApiError {
             ApiError::AuthFailed => "User authentication failed (check your credentials)".to_string(),
             ApiError::NotLoggedIn => "User is not logged in (missing session_id)".to_string(),
             ApiError::QueryDiets => "Failed to query user diets (try refreshing the page)".to_string(),
+            ApiError::QueryDietNutrition => "Failed to query diet nutrition (try refreshing the page)".to_string(),
+            ApiError::AccessDenied => "Access denied (user cannot access the requested resource)".to_string()
         }
     }
 }

@@ -19,8 +19,8 @@ pub struct Nutrient {
 pub struct DietNutrient {
     pub diet_id : i32,
     pub nutrient_id : i32,
-    pub min_intake : f64,
-    pub max_intake : f64,
+    pub min_intake : Option<f64>,
+    pub max_intake : Option<f64>,
     pub relative : bool
 }
 

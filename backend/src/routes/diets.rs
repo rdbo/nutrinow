@@ -6,17 +6,9 @@ use crate::{
     utils::{
         database::fetch_user_diets,
         request::get_user_id
-    }
+    },
+    routes::diet_nutrition::DietInfoNutrient
 };
-
-#[derive(Serialize, Debug)]
-struct DietInfoNutrient {
-    name : String,
-    min_amount : Option<f64>,
-    max_amount : Option<f64>,
-    unit : String,
-    relative : bool
-}
 
 #[derive(Serialize, Debug)]
 struct DietInfo {

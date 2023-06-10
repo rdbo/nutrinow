@@ -2,10 +2,11 @@ use sqlx::{PgPool, Row};
 use crate::{
     routes::{
         register::RegisterForm,
-        login::LoginForm
+        login::LoginForm,
+        diet_nutrition::DietInfoNutrient
     },
     utils::hash::sha256str,
-    models::Diet
+    models::*
 };
 use uuid::Uuid;
 use anyhow::{Error, Result};
@@ -91,4 +92,36 @@ pub async fn delete_session(session_id : Uuid, dbpool : &PgPool) -> Result<()> {
         .await?;
 
     Ok(())
+}
+
+pub async fn get_diet_user_id(diet_id : i32, dbpool : &PgPool) -> Option<i32> {
+    let query_result = sqlx::query("SELECT user_id FROM diet WHERE id = $1")
+        .bind(diet_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    query_result.try_get::<i32, _>("user_id").ok()
+}
+
+/*
+pub async fn fetch_diet_nutrition(diet_id : i32, dbpool : &PgPool) -> Option<Vec<DietNutrient>> {
+    let diet_nutrients = sqlx::query_as::<_, DietNutrient>("SELECT * FROM diet_nutrition WHERE diet_id = $1")
+        .bind(diet_id)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    Some(diet_nutrients)
+}
+*/
+
+pub async fn fetch_diet_info_nutrition(diet_id : i32, dbpool : &PgPool) -> Option<Vec<DietInfoNutrient>> {
+    let diet_info_nutrients = sqlx::query_as::<_, DietInfoNutrient>("SELECT nutrient.name AS name, diet_nutrition.min_intake AS min_amount, diet_nutrition.max_intake AS max_amount, nutrient.unit AS unit, diet_nutrition.relative AS relative FROM diet_nutrition JOIN nutrient ON nutrient.id = diet_nutrition.nutrient_id WHERE diet_nutrition.diet_id = $1")
+        .bind(diet_id)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    Some(diet_info_nutrients)
 }
