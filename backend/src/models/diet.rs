@@ -59,3 +59,14 @@ pub struct MealServing {
     pub serving_id : i32,
     pub amount : f64
 }
+
+#[derive(FromRow, Serialize, Debug)]
+pub struct DefaultNutrient {
+    pub nutrient_id : i32,
+    pub min_intake : Option<f64>,
+    pub max_intake : Option<f64>,
+    pub relative : bool,
+    pub gender : String,
+    pub age_min : i32,
+    pub age_max : Option<i32>
+}

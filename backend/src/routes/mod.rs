@@ -6,6 +6,7 @@ pub mod diet_nutrition;
 pub mod nutrients;
 pub mod meals;
 pub mod user;
+pub mod new_diet;
 
 pub use register::api_register;
 pub use login::api_login;
@@ -15,3 +16,4 @@ pub use diet_nutrition::api_diet_nutrition;
 pub use nutrients::api_nutrients;
 pub use meals::api_meals;
 pub use user::api_user;
+pub use new_diet::api_new_diet;

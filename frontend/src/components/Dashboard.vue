@@ -70,7 +70,7 @@ function updateCurDiet(index) {
 
 function createNewDiet(name) {
     showNewDiet.value = false;
-    let newDietData = new FormData();
+    let newDietData = new URLSearchParams();
     newDietData.append("diet_name", name);
     axios.post("/api/new_diet", newDietData)
     .then(function (response) {
@@ -87,7 +87,7 @@ function createNewDiet(name) {
 
 function editCurDiet(name) {
     showEditDiet.value = false;
-    let editDietData = new FormData();
+    let editDietData = new URLSearchParams();
     editDietData.append("diet_id", diets.value[curDietIndex.value].id);
     editDietData.append("diet_name", name);
     axios.post("/api/edit_diet", editDietData)
@@ -107,7 +107,7 @@ function editCurDiet(name) {
 
 function deleteCurDiet() {
     showDeleteDiet.value = false;
-    let deleteDietData = new FormData();
+    let deleteDietData = new URLSearchParams();
     deleteDietData.append("diet_id", diets.value[curDietIndex.value].id);
     axios.post("/api/delete_diet", deleteDietData)
     .then(function (response) {
@@ -129,7 +129,7 @@ function deleteCurDiet() {
 
 function duplicateCurDiet(name) {
     showDuplicateDiet.value = false;
-    let duplicateDietData = new FormData();
+    let duplicateDietData = new URLSearchParams();
     duplicateDietData.append("diet_id", diets.value[curDietIndex.value].id);
     duplicateDietData.append("diet_name", name);
     axios.post("/api/duplicate_diet", duplicateDietData)
@@ -147,7 +147,7 @@ function duplicateCurDiet(name) {
 
 function addMeal(mealName) {
     showAddMeal.value = false;
-    let addMealData = new FormData();
+    let addMealData = new URLSearchParams();
     addMealData.append("diet_id", diets.value[curDietIndex.value].id);
     addMealData.append("meal_name", mealName);
     axios.post("/api/add_meal", addMealData)
@@ -168,7 +168,7 @@ function deleteMeal() {
     let mealId = deleteMealId.value;
     deleteMealId.value = null;
 
-    let deleteMealData = new FormData();
+    let deleteMealData = new URLSearchParams();
     deleteMealData.append("meal_id", mealId);
     axios.post("/api/delete_meal", deleteMealData)
     .then(function (response) {
@@ -278,7 +278,7 @@ function deleteMealServing() {
         return;
     }
 
-    let deleteMealServingForm = new FormData();
+    let deleteMealServingForm = new URLSearchParams();
     deleteMealServingForm.append("meal_serving_id", food.meal_serving_id);
     axios.post("/api/delete_meal_serving", deleteMealServingForm)
     .then(function (response) {
@@ -314,7 +314,7 @@ function editFoodViewer() {
 
 function editMealFood(servingId, amount) {
     let mealServingId = editMealFoodRef.value.meal_serving_id;
-    let editMealServingForm = new FormData();
+    let editMealServingForm = new URLSearchParams();
     editMealServingForm.append("meal_serving_id", mealServingId);
     editMealServingForm.append("serving_id", servingId);
     editMealServingForm.append("amount", amount);

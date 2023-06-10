@@ -26,5 +26,5 @@ pub async fn api_login(form : web::Form<LoginForm>, dbpool : web::Data<PgPool>) 
         Err(_) => return web::Json(ApiResponse::err(ApiError::AuthFailed))
     };
 
-    web::Json(ApiResponse::Success(LoginResponse { session_id }))
+    web::Json(ApiResponse::ok(LoginResponse { session_id }))
 }

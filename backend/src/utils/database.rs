@@ -6,7 +6,10 @@ use crate::{
         diet_nutrition::DietInfoNutrient,
         meals::{MealInfoFood, MealInfoNutrient}
     },
-    utils::hash::sha256str,
+    utils::{
+        hash::sha256str,
+        time::calculate_age
+    },
     models::*
 };
 use uuid::Uuid;
@@ -248,4 +251,41 @@ pub async fn fetch_user_account(user_id : i32, dbpool : &PgPool) -> Option<UserA
         .ok()?;
 
     Some(user)
+}
+
+pub async fn create_diet(user_id : i32, diet_name : &String, dbpool : &PgPool) -> Option<()> {
+    let diet_id = sqlx::query("INSERT INTO diet(name, user_id) VALUES($1, $2) RETURNING id")
+        .bind(diet_name)
+        .bind(user_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+    let diet_id : i32 = diet_id.try_get("id").ok()?;
+
+    let user_account = fetch_user_account(user_id, dbpool).await?;
+
+    let user_age = calculate_age(&user_account.birthdate);
+
+    // TODO: Check if 'query_as' fails if the SQL returns no rows
+    let default_nutrition = sqlx::query_as::<_, DefaultNutrient>("SELECT * FROM default_nutrition WHERE gender = $1 AND $2 >= age_min AND ($3 < age_max OR age_max IS NULL)")
+        .bind(user_account.gender)
+        .bind(user_age)
+        .bind(user_age)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    for nutrient in default_nutrition {
+        sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) VALUES ($1, $2, $3, $4, $5)")
+            .bind(diet_id)
+            .bind(nutrient.nutrient_id)
+            .bind(nutrient.min_intake)
+            .bind(nutrient.max_intake)
+            .bind(nutrient.relative)
+            .execute(dbpool)
+            .await
+            .ok();
+    }
+
+    Some(())
 }
