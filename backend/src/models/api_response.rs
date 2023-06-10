@@ -16,7 +16,8 @@ pub enum ApiError {
     QueryMeals,
     CreateDiet,
     EditDiet,
-    DeleteDiet
+    DeleteDiet,
+    CreateMeal
 }
 
 impl ToString for ApiError {
@@ -32,7 +33,8 @@ impl ToString for ApiError {
             ApiError::QueryMeals => "Failed to query meals (try refreshing the page)".to_string(),
             ApiError::CreateDiet => "Failed to create diet (try again)".to_string(),
             ApiError::EditDiet => "Failed to edit diet (try again)".to_string(),
-            ApiError::DeleteDiet => "Failed to delete diet (try again)".to_string()
+            ApiError::DeleteDiet => "Failed to delete diet (try again)".to_string(),
+            ApiError::CreateMeal => "Failed to create meal (try again)".to_string()
         }
     }
 }

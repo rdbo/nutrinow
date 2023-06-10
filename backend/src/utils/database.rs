@@ -324,3 +324,16 @@ pub async fn delete_diet(diet_id : i32, dbpool : &PgPool) -> Result<()> {
 
     Ok(())
 }
+
+pub async fn create_meal(diet_id : i32, meal_name : &String, dbpool : &PgPool) -> Option<i32> {
+    let query_result = sqlx::query("INSERT INTO meal(diet_id, name) VALUES ($1, $2) RETURNING id")
+        .bind(diet_id)
+        .bind(meal_name)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    let meal_id : i32 = query_result.try_get("id").ok()?;
+
+    Some(meal_id)
+}
