@@ -10,6 +10,7 @@ pub mod new_diet;
 pub mod edit_diet;
 pub mod delete_diet;
 pub mod add_meal;
+pub mod delete_meal;
 
 pub use register::api_register;
 pub use login::api_login;
@@ -23,3 +24,4 @@ pub use new_diet::api_new_diet;
 pub use edit_diet::api_edit_diet;
 pub use delete_diet::api_delete_diet;
 pub use add_meal::api_add_meal;
+pub use delete_meal::api_delete_meal;

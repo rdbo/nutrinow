@@ -337,3 +337,29 @@ pub async fn create_meal(diet_id : i32, meal_name : &String, dbpool : &PgPool) -
 
     Some(meal_id)
 }
+
+pub async fn get_meal_user_id(meal_id : i32, dbpool : &PgPool) -> Option<i32> {
+    let query_result = sqlx::query("SELECT diet_id FROM meal WHERE id = $1")
+        .bind(meal_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    let diet_id : i32 = query_result.try_get("diet_id").ok()?;
+
+    get_diet_user_id(diet_id, dbpool).await
+}
+
+pub async fn delete_meal(meal_id : i32, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("DELETE FROM meal_serving WHERE meal_id = $1")
+        .bind(meal_id)
+        .execute(dbpool)
+        .await?;
+
+    sqlx::query("DELETE FROM meal WHERE id = $1")
+        .bind(meal_id)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}
