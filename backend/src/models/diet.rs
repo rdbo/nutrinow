@@ -28,3 +28,34 @@ pub struct DietNutrient {
 pub struct DietNutrition {
     pub nutrition : Vec<DietNutrient>
 }
+
+#[derive(FromRow, Serialize, Debug)]
+pub struct Food {
+    id : i32,
+    name : String,
+    user_id : i32
+}
+
+#[derive(FromRow, Serialize, Debug)]
+pub struct Serving {
+    id : i32,
+    food_id : i32,
+    unit : String,
+    amount : f64,
+    relative : Option<i32>
+}
+
+#[derive(FromRow, Serialize, Debug)]
+pub struct Meal {
+    pub id : i32,
+    pub diet_id : i32,
+    pub name : String
+}
+
+#[derive(FromRow, Serialize, Debug)]
+pub struct MealServing {
+    pub id : i32,
+    pub meal_id : i32,
+    pub serving_id : i32,
+    pub amount : f64
+}

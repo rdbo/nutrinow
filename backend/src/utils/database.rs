@@ -3,7 +3,8 @@ use crate::{
     routes::{
         register::RegisterForm,
         login::LoginForm,
-        diet_nutrition::DietInfoNutrient
+        diet_nutrition::DietInfoNutrient,
+        meals::{MealInfoFood, MealInfoNutrient}
     },
     utils::hash::sha256str,
     models::*
@@ -133,4 +134,108 @@ pub async fn fetch_nutrients(dbpool : &PgPool) -> Option<Vec<Nutrient>> {
         .ok()?;
 
     Some(nutrients)
+}
+
+pub async fn fetch_diet_meals(diet_id : i32, dbpool : &PgPool) -> Option<Vec<Meal>> {
+    let meals = sqlx::query_as::<_, Meal>("SELECT * FROM meal WHERE diet_id = $1")
+        .bind(diet_id)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    Some(meals)
+}
+
+/* TODO: Clean up this function (taken from old codebase, needs refactoring) */
+pub async fn fetch_meal_info_foods(meal_id : i32, dbpool : &PgPool) -> Option<Vec<MealInfoFood>> {
+	let query_foods = async {
+		sqlx::query("SELECT food.id AS id, food.name AS name, meal_serving.id AS meal_serving_id, serving.id AS serving_id, serving.amount AS serving_base, meal_serving.amount AS amount, serving.unit AS unit, serving.relative AS relative FROM meal_serving JOIN serving ON meal_serving.serving_id = serving.id JOIN food ON serving.food_id = food.id WHERE meal_serving.meal_id = $1")
+			.bind(meal_id)
+			.fetch_all(dbpool)
+			.await
+	};
+
+	let foods = match query_foods.await {
+		Ok(r) => r,
+		Err(_) => return None
+	};
+
+	let mut foods_info : Vec<MealInfoFood> = vec![];
+	for food in foods {
+		let food_id : i32 = food.try_get("id").ok()?;
+		let food_name : String = food.try_get("name").ok()?;
+		let meal_serving_id : i32 = food.try_get("meal_serving_id").ok()?;
+		let serving_id : i32 = food.try_get("serving_id").ok()?;
+		let mut serving_base : f64 = food.try_get("serving_base").ok()?;
+		let serving_amount : f64 = food.try_get("amount").ok()?;
+		let serving_unit : String = food.try_get("unit").ok()?;
+		let serving_relative : Option<i32> = food.try_get("relative").ok()?;
+		let mut serving_rel_amount : f64 = 0.0;
+
+		if let Some(_) = serving_relative {
+			serving_base = 1.0;
+
+			let row = match sqlx::query("SELECT amount FROM serving WHERE serving.id = $1")
+				.bind(serving_id)
+				.fetch_one(dbpool)
+				.await {
+				Ok(r) => r,
+				Err(_) => continue
+			};
+
+			serving_rel_amount = row.try_get("amount").unwrap();
+		}
+
+		let query_nutrients = async {
+			if let Some(id) = serving_relative {
+				sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit, serving.amount AS serving_base_amount FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
+					.bind(id)
+					.fetch_all(dbpool)
+					.await
+			} else {
+				sqlx::query("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN serving ON serving.id = serving_nutrient.serving_id JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving.id = $1")
+					.bind(serving_id)
+					.fetch_all(dbpool)
+					.await
+			}
+		};
+
+		let nutrients = match query_nutrients.await {
+			Ok(r) => r,
+			Err(_) => continue
+		};
+
+		let mut base_nutrients : Vec<MealInfoNutrient> = vec![];
+		for nutrient in nutrients {
+			let nutrient_name : String = nutrient.try_get("name").ok()?;
+			let mut nutrient_amount : f64 = nutrient.try_get("amount").ok()?;
+			let nutrient_unit : String = nutrient.try_get("unit").ok()?;
+
+			if let Some(_) = serving_relative {
+				let serving_base_amount : f64 = nutrient.try_get("serving_base_amount").ok()?;
+				nutrient_amount *= serving_rel_amount / serving_base_amount;
+			}
+
+			let nutrient_info = MealInfoNutrient {
+				name: nutrient_name,
+				amount: nutrient_amount,
+				unit: nutrient_unit
+			};
+			base_nutrients.push(nutrient_info);
+		}
+
+		let food = MealInfoFood {
+			id: food_id,
+			name: food_name,
+			meal_serving_id,
+			serving_id,
+			serving_base,
+			serving_amount,
+			serving_unit,
+			base_nutrients
+		};
+		foods_info.push(food);
+	}
+
+    Some(foods_info)
 }
