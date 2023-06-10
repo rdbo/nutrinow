@@ -31,18 +31,18 @@ pub struct DietNutrition {
 
 #[derive(FromRow, Serialize, Debug)]
 pub struct Food {
-    id : i32,
-    name : String,
-    user_id : i32
+    pub id : i32,
+    pub name : String,
+    pub user_id : i32
 }
 
 #[derive(FromRow, Serialize, Debug)]
 pub struct Serving {
-    id : i32,
-    food_id : i32,
-    unit : String,
-    amount : f64,
-    relative : Option<i32>
+    pub id : i32,
+    pub food_id : i32,
+    pub unit : String,
+    pub amount : f64,
+    pub relative : Option<i32>
 }
 
 #[derive(FromRow, Serialize, Debug)]

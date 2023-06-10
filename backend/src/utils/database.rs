@@ -4,7 +4,8 @@ use crate::{
         register::RegisterForm,
         login::LoginForm,
         diet_nutrition::DietInfoNutrient,
-        meals::{MealInfoFood, MealInfoNutrient}
+        meals::{MealInfoFood, MealInfoNutrient},
+        food_search::{SearchFoodServing, SearchFood}
     },
     utils::{
         hash::sha256str,
@@ -362,4 +363,58 @@ pub async fn delete_meal(meal_id : i32, dbpool : &PgPool) -> Result<()> {
         .await?;
 
     Ok(())
+}
+
+pub async fn search_foods(food_name : &String, dbpool : &PgPool) -> Option<Vec<SearchFood>> {
+    // setup SQL search strings (for the ILIKE keyword)
+    let best_search = format!("{}%", food_name);
+    let second_best_search = best_search.replace(" ", "%");
+    let food_name_search = format!("%{}", second_best_search);
+
+    let foods = sqlx::query_as::<_, Food>("SELECT * FROM food WHERE name ILIKE $1 ORDER BY (CASE WHEN name ILIKE $2 THEN 1 WHEN name ILIKE $3 THEN 2 ELSE 3 END) ASC LIMIT 10")
+        .bind(food_name_search)
+        .bind(best_search)
+        .bind(second_best_search)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    let mut search_foods : Vec<SearchFood> = vec![];
+    for food in foods {
+        let mut search_servings : Vec<SearchFoodServing> = vec![];
+
+        let servings = sqlx::query_as::<_, Serving>("SELECT * FROM serving WHERE food_id = $1")
+            .bind(food.id)
+            .fetch_all(dbpool)
+            .await
+            .ok()?;
+
+        for serving in servings {
+            let mut nutrients : Vec<MealInfoNutrient> = vec![]; 
+
+            if let None = serving.relative {
+                nutrients = sqlx::query_as::<_, MealInfoNutrient>("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
+                    .bind(serving.id)
+                    .fetch_all(dbpool)
+                    .await
+                    .ok()?; 
+            }
+
+            search_servings.push(SearchFoodServing {
+                id: serving.id,
+                amount: serving.amount,
+                unit: serving.unit,
+                nutrients,
+                relative: serving.relative
+            });
+        }
+
+        search_foods.push(SearchFood {
+            id: food.id,
+            name: food.name.clone(),
+            servings: search_servings
+        });
+    }
+
+    Some(search_foods)
 }
