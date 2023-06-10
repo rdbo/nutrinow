@@ -300,3 +300,27 @@ pub async fn edit_diet(diet_id : i32, diet_name : &String, dbpool : &PgPool) -> 
 
     Some(())
 }
+
+pub async fn delete_diet(diet_id : i32, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("DELETE FROM meal_serving WHERE meal_id IN (SELECT meal_serving.meal_id FROM meal_serving JOIN meal ON meal.id = meal_serving.meal_id WHERE diet_id = $1)")
+        .bind(diet_id)
+        .execute(dbpool)
+        .await?;
+
+    sqlx::query("DELETE FROM meal WHERE diet_id = $1")
+        .bind(diet_id)
+        .execute(dbpool)
+        .await?;
+
+    sqlx::query("DELETE FROM diet_nutrition WHERE diet_id = $1")
+        .bind(diet_id)
+        .execute(dbpool)
+        .await?;
+
+    sqlx::query("DELETE FROM diet WHERE id = $1")
+        .bind(diet_id)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}

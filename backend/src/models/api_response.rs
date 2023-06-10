@@ -15,7 +15,8 @@ pub enum ApiError {
     QueryNutrients,
     QueryMeals,
     CreateDiet,
-    EditDiet
+    EditDiet,
+    DeleteDiet
 }
 
 impl ToString for ApiError {
@@ -30,7 +31,8 @@ impl ToString for ApiError {
             ApiError::QueryNutrients => "Failed to query nutrients (try refreshing the page)".to_string(),
             ApiError::QueryMeals => "Failed to query meals (try refreshing the page)".to_string(),
             ApiError::CreateDiet => "Failed to create diet (try again)".to_string(),
-            ApiError::EditDiet => "Failed to edit diet (try again)".to_string()
+            ApiError::EditDiet => "Failed to edit diet (try again)".to_string(),
+            ApiError::DeleteDiet => "Failed to delete diet (try again)".to_string()
         }
     }
 }

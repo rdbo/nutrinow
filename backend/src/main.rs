@@ -52,6 +52,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::api_user)
             .service(routes::api_new_diet)
             .service(routes::api_edit_diet)
+            .service(routes::api_delete_diet)
             /* Serve index.html on / and on any unmatched routes (necessary to work with Vue.js) */
             .service(root)
             .service(files)
