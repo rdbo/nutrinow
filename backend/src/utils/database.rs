@@ -125,3 +125,12 @@ pub async fn fetch_diet_info_nutrition(diet_id : i32, dbpool : &PgPool) -> Optio
 
     Some(diet_info_nutrients)
 }
+
+pub async fn fetch_nutrients(dbpool : &PgPool) -> Option<Vec<Nutrient>> {
+    let nutrients = sqlx::query_as::<_, Nutrient>("SELECT * FROM nutrient")
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    Some(nutrients)
+}
