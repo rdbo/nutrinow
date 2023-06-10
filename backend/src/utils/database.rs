@@ -239,3 +239,13 @@ pub async fn fetch_meal_info_foods(meal_id : i32, dbpool : &PgPool) -> Option<Ve
 
     Some(foods_info)
 }
+
+pub async fn fetch_user_account(user_id : i32, dbpool : &PgPool) -> Option<UserAccount> {
+    let user = sqlx::query_as::<_, UserAccount>("SELECT * FROM user_account WHERE id = $1")
+        .bind(user_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    Some(user)
+}
