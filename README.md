@@ -3,6 +3,7 @@ Make the diet of your dreams
 
 ![dashboard](dashboard.png)
 ![foods](foods.png)
+![nutrition](nutrition.png)
 
 # Description
 
