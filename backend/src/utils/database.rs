@@ -450,3 +450,14 @@ pub async fn delete_meal_serving(meal_serving_id : i32, dbpool : &PgPool) -> Res
 
     Ok(())
 }
+
+pub async fn update_meal_serving(meal_serving_id : i32, serving_id : i32, amount : f64, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("UPDATE meal_serving SET serving_id = $1, amount = $2 WHERE id = $3")
+        .bind(serving_id)
+        .bind(amount)
+        .bind(meal_serving_id)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}
