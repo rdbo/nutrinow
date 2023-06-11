@@ -429,3 +429,24 @@ pub async fn add_meal_serving(meal_id : i32, serving_id : i32, amount : f64, dbp
 
     Ok(())
 }
+
+pub async fn get_meal_serving_user_id(meal_serving_id : i32, dbpool : &PgPool) -> Option<i32> {
+    let query_result = sqlx::query("SELECT meal_id FROM meal_serving WHERE id = $1")
+        .bind(meal_serving_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    let meal_id : i32 = query_result.try_get("meal_id").ok()?;
+
+    get_meal_user_id(meal_id, dbpool).await
+}
+
+pub async fn delete_meal_serving(meal_serving_id : i32, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("DELETE FROM meal_serving WHERE id = $1")
+        .bind(meal_serving_id)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}

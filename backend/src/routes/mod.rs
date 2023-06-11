@@ -13,6 +13,7 @@ pub mod add_meal;
 pub mod delete_meal;
 pub mod food_search;
 pub mod add_meal_serving;
+pub mod delete_meal_serving;
 
 pub use register::api_register;
 pub use login::api_login;
@@ -29,3 +30,4 @@ pub use add_meal::api_add_meal;
 pub use delete_meal::api_delete_meal;
 pub use food_search::api_food_search;
 pub use add_meal_serving::api_add_meal_serving;
+pub use delete_meal_serving::api_delete_meal_serving;
