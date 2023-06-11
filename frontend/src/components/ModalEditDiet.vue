@@ -6,6 +6,7 @@ import { PencilSquareIcon } from '@heroicons/vue/24/outline';
 const props = defineProps(["diet"]);
 const emit = defineEmits(["cancel-edit", "edit-diet"]);
 const dietName = ref("");
+const formDietName = ref(null);
 </script>
 
 <template>
@@ -28,7 +29,7 @@ const dietName = ref("");
                                         <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900">Edit Diet</DialogTitle>
                                         <div class="mt-2 text-lg">
                                             <p class="text-gray-500">New name for "<span class="font-bold text-gray-800">{{ diet.name }}</span>":</p>
-                                            <input class="border-gray-400 border-2 rounded-md px-1 py-1" v-model="dietName"/>
+                                            <input ref="formDietName" @input="dietName = formDietName.value" class="border-gray-400 border-2 rounded-md px-1 py-1"/>
                                         </div>
                                     </div>
                                 </div>
