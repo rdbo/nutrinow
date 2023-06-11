@@ -365,12 +365,62 @@ pub async fn delete_meal(meal_id : i32, dbpool : &PgPool) -> Result<()> {
     Ok(())
 }
 
+async fn fetch_search_food_servings(food_id : i32, dbpool : &PgPool) -> Option<Vec<SearchFoodServing>> {
+    let mut search_servings : Vec<SearchFoodServing> = vec![];
+
+    let servings = sqlx::query_as::<_, Serving>("SELECT * FROM serving WHERE food_id = $1")
+        .bind(food_id)
+        .fetch_all(dbpool)
+        .await
+        .ok()?;
+
+    for serving in servings {
+        let mut nutrients : Vec<MealInfoNutrient> = vec![]; 
+
+        if let None = serving.relative {
+            nutrients = sqlx::query_as::<_, MealInfoNutrient>("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
+                .bind(serving.id)
+                .fetch_all(dbpool)
+                .await
+                .ok()?; 
+        }
+
+        search_servings.push(SearchFoodServing {
+            id: serving.id,
+            amount: serving.amount,
+            unit: serving.unit,
+            nutrients,
+            relative: serving.relative
+        });
+    }
+
+    Some(search_servings)
+}
+
+pub async fn fetch_search_food(food_id : i32, dbpool : &PgPool) -> Option<SearchFood> {
+    let food = sqlx::query_as::<_, Food>("SELECT * FROM food WHERE id = $1")
+        .bind(food_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    let search_servings = fetch_search_food_servings(food.id, dbpool).await?;
+
+    Some(SearchFood {
+        id: food.id,
+        name: food.name.clone(),
+        servings: search_servings
+    })
+}
+
 pub async fn search_foods(food_name : &String, dbpool : &PgPool) -> Option<Vec<SearchFood>> {
     // setup SQL search strings (for the ILIKE keyword)
     let best_search = format!("{}%", food_name);
     let second_best_search = best_search.replace(" ", "%");
     let food_name_search = format!("%{}", second_best_search);
 
+    // TODO: Optimize. The following query reads all information from 'food', but
+    // 'fetch_search_food' reads that again.
     let foods = sqlx::query_as::<_, Food>("SELECT * FROM food WHERE name ILIKE $1 ORDER BY (CASE WHEN name ILIKE $2 THEN 1 WHEN name ILIKE $3 THEN 2 ELSE 3 END) ASC LIMIT 10")
         .bind(food_name_search)
         .bind(best_search)
@@ -381,39 +431,7 @@ pub async fn search_foods(food_name : &String, dbpool : &PgPool) -> Option<Vec<S
 
     let mut search_foods : Vec<SearchFood> = vec![];
     for food in foods {
-        let mut search_servings : Vec<SearchFoodServing> = vec![];
-
-        let servings = sqlx::query_as::<_, Serving>("SELECT * FROM serving WHERE food_id = $1")
-            .bind(food.id)
-            .fetch_all(dbpool)
-            .await
-            .ok()?;
-
-        for serving in servings {
-            let mut nutrients : Vec<MealInfoNutrient> = vec![]; 
-
-            if let None = serving.relative {
-                nutrients = sqlx::query_as::<_, MealInfoNutrient>("SELECT nutrient.name AS name, serving_nutrient.amount AS amount, nutrient.unit AS unit FROM serving_nutrient JOIN nutrient ON nutrient.id = serving_nutrient.nutrient_id WHERE serving_id = $1")
-                    .bind(serving.id)
-                    .fetch_all(dbpool)
-                    .await
-                    .ok()?; 
-            }
-
-            search_servings.push(SearchFoodServing {
-                id: serving.id,
-                amount: serving.amount,
-                unit: serving.unit,
-                nutrients,
-                relative: serving.relative
-            });
-        }
-
-        search_foods.push(SearchFood {
-            id: food.id,
-            name: food.name.clone(),
-            servings: search_servings
-        });
+        search_foods.push(fetch_search_food(food.id, dbpool).await?);
     }
 
     Some(search_foods)
