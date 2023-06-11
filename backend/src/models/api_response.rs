@@ -19,7 +19,8 @@ pub enum ApiError {
     DeleteDiet,
     CreateMeal,
     DeleteMeal,
-    SearchFoods
+    SearchFoods,
+    AddMealServing
 }
 
 impl ToString for ApiError {
@@ -38,7 +39,8 @@ impl ToString for ApiError {
             ApiError::DeleteDiet => "Failed to delete diet (try again)".to_string(),
             ApiError::CreateMeal => "Failed to create meal (try again)".to_string(),
             ApiError::DeleteMeal => "Failed to delete meal (try again)".to_string(),
-            ApiError::SearchFoods => "Failed to search foods (try again)".to_string()
+            ApiError::SearchFoods => "Failed to search foods (try again)".to_string(),
+            ApiError::AddMealServing => "Failed to add serving to meal (try again)".to_string()
         }
     }
 }

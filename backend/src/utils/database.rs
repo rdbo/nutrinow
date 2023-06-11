@@ -418,3 +418,14 @@ pub async fn search_foods(food_name : &String, dbpool : &PgPool) -> Option<Vec<S
 
     Some(search_foods)
 }
+
+pub async fn add_meal_serving(meal_id : i32, serving_id : i32, amount : f64, dbpool : &PgPool) -> Result<()> {
+    sqlx::query("INSERT INTO meal_serving(meal_id, serving_id, amount) VALUES ($1, $2, $3)")
+        .bind(meal_id)
+        .bind(serving_id)
+        .bind(amount)
+        .execute(dbpool)
+        .await?;
+
+    Ok(())
+}

@@ -84,7 +84,7 @@ function addFoodToMeal(servingId, amount) {
         return;
     }
 
-    let addMealServingData = new FormData();
+    let addMealServingData = new URLSearchParams();
     addMealServingData.append("meal_id", mealId);
     addMealServingData.append("serving_id", servingId);
     addMealServingData.append("amount", amount);
