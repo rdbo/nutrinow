@@ -4,3 +4,5 @@ frontend/public/styles.css
 backend/target
 setup/usda/
 setup/usda.sql
+backend/Config.toml
+backend/ConfigDebug.toml
