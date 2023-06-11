@@ -479,3 +479,46 @@ pub async fn update_meal_serving(meal_serving_id : i32, serving_id : i32, amount
 
     Ok(())
 }
+
+pub async fn duplicate_diet(user_id : i32, diet_id : i32, new_diet_name : &String, dbpool : &PgPool) -> Option<()> {
+    // Create diet
+    let query_result = sqlx::query("INSERT INTO diet(name, user_id) VALUES ($1, $2) RETURNING id")
+        .bind(new_diet_name)
+        .bind(user_id)
+        .fetch_one(dbpool)
+        .await
+        .ok()?;
+
+    let new_diet_id : i32 = query_result.try_get("id").ok()?;
+
+    // Copy diet nutrition
+    sqlx::query("INSERT INTO diet_nutrition(diet_id, nutrient_id, min_intake, max_intake, relative) SELECT $1, nutrient_id, min_intake, max_intake, relative FROM diet_nutrition WHERE diet_id = $2")
+        .bind(new_diet_id)
+        .bind(diet_id)
+        .execute(dbpool)
+        .await
+        .ok()?;
+
+    // Copy meals
+    let meals = fetch_diet_meals(diet_id, dbpool).await?;
+    for meal in meals {
+        let query_result = sqlx::query("INSERT INTO meal(diet_id, name) VALUES ($1, $2) RETURNING id")
+            .bind(new_diet_id)
+            .bind(&meal.name)
+            .fetch_one(dbpool)
+            .await
+            .ok()?;
+
+        let new_meal_id : i32 = query_result.try_get("id").ok()?;
+
+        // Copy meal servings
+        sqlx::query("INSERT INTO meal_serving(meal_id, serving_id, amount) SELECT $1, serving_id, amount FROM meal_serving WHERE meal_id = $2")
+            .bind(new_meal_id)
+            .bind(meal.id)
+            .execute(dbpool)
+            .await
+            .ok()?;
+    }
+
+    Some(())
+}

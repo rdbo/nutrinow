@@ -16,6 +16,7 @@ pub mod add_meal_serving;
 pub mod delete_meal_serving;
 pub mod edit_meal_serving;
 pub mod food;
+pub mod duplicate_diet;
 
 pub use register::api_register;
 pub use login::api_login;
@@ -35,3 +36,4 @@ pub use add_meal_serving::api_add_meal_serving;
 pub use delete_meal_serving::api_delete_meal_serving;
 pub use edit_meal_serving::api_edit_meal_serving;
 pub use food::api_food;
+pub use duplicate_diet::api_duplicate_diet;

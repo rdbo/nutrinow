@@ -141,7 +141,7 @@ function duplicateCurDiet(name) {
         updateDiets(true);
     })
     .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/edit_diet)");
+        errorStore.msgs.push("Failed to connect to the server (/api/duplicate_diet)");
     });
 }
 
