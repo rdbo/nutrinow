@@ -1,0 +1,14 @@
+[Unit]
+Description=NutriNow web server
+
+[Service]
+User=www-data
+Group=www-data
+
+WorkingDirectory=/opt/nutrinow/backend
+Environment="RUST_LOG=error"
+ExecStart=/opt/nutrinow/backend/target/release/nutrinow
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
