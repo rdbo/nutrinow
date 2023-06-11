@@ -7,6 +7,7 @@ pub struct ApiResponseError {
 
 pub enum ApiError {
     RegistrationFailed,
+    InvalidInput,
     AuthFailed,
     NotLoggedIn,
     QueryDiets,
@@ -31,6 +32,7 @@ impl ToString for ApiError {
     fn to_string(&self) -> String {
         match self {
             ApiError::RegistrationFailed => "Failed to register user (try again)".to_string(),
+            ApiError::InvalidInput => "Invalid user input (possible problems: data too long, invalid email/birthdate/gender/weight)".to_string(),
             ApiError::AuthFailed => "User authentication failed (check your credentials)".to_string(),
             ApiError::NotLoggedIn => "User is not logged in (missing session_id)".to_string(),
             ApiError::QueryDiets => "Failed to query user diets (try refreshing the page)".to_string(),
