@@ -9,13 +9,15 @@ mod tests {
     #[actix_web::test]
     async fn test_start_server() -> Result<()> {
         env_logger::init();
-        info!("Initializing actix-web server");
+        info!("Loading settings");
         let settings = Settings::load()?;
         info!("Settings: {:?}", settings);
+        info!("Starting database");
         let dbpool = create_db(&settings).await?;
+        info!("Starting web server");
         let app = test::init_service(create_app(dbpool.clone())).await;
-        let req = test::TestRequest::get().uri("/").to_request();
         info!("Sending GET request to /");
+        let req = test::TestRequest::get().uri("/").to_request();
         let resp = test::call_service(&app, req).await;
         info!("Response: {}", resp.status());
         assert!(resp.status().is_success());
