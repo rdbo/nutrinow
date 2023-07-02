@@ -122,7 +122,7 @@ setInterval(updateSession, 100);
                                                 <img v-if="profileStore.gender == 'F'" src="@/assets/imgs/female.svg" class="origin-top scale-150"/>
                                                 <img v-else src="@/assets/imgs/male.svg" class="origin-top scale-150"/>
                                             </div>
-                                            <p>{{ profileStore.name }}</p>
+                                            <p>Profile</p>
                                         </div>
                                     </RouterLink>
                                 </li>
