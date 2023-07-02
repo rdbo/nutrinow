@@ -66,13 +66,27 @@ setInterval(updateSession, 100);
                         <div :class="[showNavItems ? 'show-nav-items' : 'hide-nav-items']" class="p-4 bg-gray-100 w-full absolute top-full md:p-0 md:static md:flex md:w-auto text-lg md:flex md:flex-col" id="navbar-default">
                             <ul class="font-medium flex flex-col p-4 md:p-0 md:px-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-4 md:mt-0 md:border-0 md:bg-gray-100 md:grow">
                                 <li>
-                                    <RouterLink :to="{ name: 'home' }" class="nav-item" aria-current="page">Home</RouterLink>
+                                    <RouterLink :to="{ name: 'home' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center w-fit">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/home.svg"/>
+                                            </div>
+                                            <p>Home</p>
+                                        </div>
+                                    </RouterLink>
                                 </li>
                                 <li>
+                                    <RouterLink :to="{ name: 'foods' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center w-fit">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/strawberry.svg"/>
+                                            </div>
+                                            <p>Foods</p>
+                                        </div>
+                                    </RouterLink>
+                                </li>
+                                <li v-if="!sessionStore.id">
                                     <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">About</RouterLink>
-                                </li>
-                                <li>
-                                    <RouterLink :to="{ name: 'foods' }" class="nav-item" aria-current="page">Foods</RouterLink>
                                 </li>
                                 <li v-if="!sessionStore.id">
                                     <RouterLink :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
@@ -82,7 +96,7 @@ setInterval(updateSession, 100);
                                 </li>
                                 <li v-if="sessionStore.id">
                                     <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">
-                                        <div class="flex items-center flow-reverse flex-row-reverse md:flex-row w-fit">
+                                        <div class="flex items-center w-fit">
                                             <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-300 mx-2">
                                                 <img v-if="profileStore.gender == 'F'" src="@/assets/imgs/female.svg" class="origin-top scale-150"/>
                                                 <img v-else src="@/assets/imgs/male.svg" class="origin-top scale-150"/>
@@ -92,7 +106,14 @@ setInterval(updateSession, 100);
                                     </RouterLink>
                                 </li>
                                 <li v-if="sessionStore.id">
-                                    <div @click="logout" class="cursor-pointer nav-item">Logout</div>
+                                    <div class="nav-item cursor-pointer">
+                                        <div @click="logout" class="flex items-center w-fit">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/leave.svg"/>
+                                            </div>
+                                            <p>Logout</p>
+                                        </div>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
