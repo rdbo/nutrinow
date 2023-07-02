@@ -31,7 +31,6 @@ const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const editMealFoodRef = ref(null); // will prompt for edit meal serving if not null
 const editFoodViewerRef = ref(null); // will show the food viewer
 const meals = ref([]);
-const userInfo = ref(null);
 const nutrients = ref([]);
 
 function updateCurDiet(index) {
@@ -159,19 +158,6 @@ function updateDiets(useLast = false) {
     );
 }
 
-function updateUserInfo() {
-    api_get("user", null,
-        (data) => {
-            // TODO: Remove 'userInfo' and use only 'profileStore'
-            userInfo.value = data;
-            profileStore.name = data.name;
-            profileStore.birthdate = data.birthdate;
-            profileStore.weight = data.weight;
-            profileStore.gender = data.gender;
-        }
-    );
-}
-
 function updateNutrients() {
     api_get("nutrients", null, 
         (data) => { nutrients.value = data.nutrients; }
@@ -247,7 +233,6 @@ function viewMealFood(food) {
     console.log(food);
 }
 
-updateUserInfo();
 updateDiets();
 updateNutrients();
 // unset cached meal ID (for adding foods)
@@ -255,7 +240,7 @@ sessionStorage.removeItem("meal_id");
 </script>
 
 <template>
-    <div class="mx-1 sm:mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
+    <div class="mx-1 sm:mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto">
         <h1 class="text-2xl max-md:text-center">Dashboard</h1>
         <div>
             <div class="my-4">
@@ -278,7 +263,7 @@ sessionStorage.removeItem("meal_id");
                 <h1>No Diets Found</h1>
                 <h2>Try creating a new diet using the Dashboard Menu</h2>
             </div>
-            <NutritionTable v-if="diets.length" :meals="meals" :userInfo="userInfo" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
+            <NutritionTable v-if="diets.length" :meals="meals" :nutrients="nutrients" :diet="diets[curDietIndex]"/>
         </div>
     </div>
 </template>

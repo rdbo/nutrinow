@@ -1,8 +1,14 @@
 <script setup>
 import { computed } from "vue";
+import { useProfileStore} from "@/stores/profile";
 
-const props = defineProps(["meals", "diet", "userInfo", "nutrients"]);
+const profileStore = useProfileStore();
+
+const props = defineProps(["meals", "diet", "nutrients"]);
 const nutritionTable = computed(() => {
+    if (!profileStore.weight)
+        return [];
+
     // TODO: Consider ALL desired nutrients, not only the ones given by the foods (maybe the food has not registered a certain nutrient)
     let nutrient_map = { };
     props.nutrients.forEach((nutrient) => {
@@ -19,9 +25,9 @@ const nutritionTable = computed(() => {
         let max_desired = nutrient.max_amount;
         if (nutrient.relative) {
             if (min_desired !== null)
-                min_desired *= props.userInfo.weight;
+                min_desired *= profileStore.weight;
             if (max_desired !== null)
-                max_desired *= props.userInfo.weight;
+                max_desired *= profileStore.weight;
         }
         nutrient_map[nutrient.name].min_desired = min_desired;
         nutrient_map[nutrient.name].max_desired = max_desired;
