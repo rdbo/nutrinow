@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useErrorStore } from "@/stores/error";
 import { useSessionStore } from "@/stores/session";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/20/solid";
-import axios from "axios";
+import { api_post } from "../composables/api_request.js";
 
 const router = useRouter();
 const errorStore = useErrorStore();
@@ -23,21 +23,17 @@ function loginHandler(e) {
     loginData.append("email", emailForm.value);
     loginData.append("password", passwordForm.value);
 
-    axios.post("/api/login", loginData)
-    .then(function (response) {
-        if (response.data.err) {
-            waitingLogin.value = false;
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
+    api_post("login", loginData,
+        (data) => {
+            $cookies.set("session_id", data.session_id, "1y");
+            sessionStore.id = data.session_id;
+            router.push({ name: "home" });
+        },
 
-        $cookies.set("session_id", response.data.session_id, "1y");
-        sessionStore.id = response.data.session_id;
-        router.push({ name: "home" });
-    }).catch(function (err) {
-        errorStore.msgs.push("Failed to connect to server (/api/login)");
-        waitingLogin.value = false;
-    });
+        () => {
+            waitingLogin.value = false;
+        }
+    );
 }
 
 /* redirect to / if user is logged in */
