@@ -6,6 +6,8 @@
     "dev": "concurrently --kill-others \"npm run serve\" \"npm run watch-css\"",
     "serve": "vite",
     "watch-css": "tailwindcss -i ./src/assets/main.css -o public/styles.css --watch",
+    "watch-vue": "vite build -m debug -w",
+    "watch": "concurrently --kill-others \"npm run watch-css\" \"npm run watch-vue\"",
     "build": "tailwindcss -i ./src/assets/main.css -o public/styles.css ; vite build",
     "preview": "vite preview"
   },

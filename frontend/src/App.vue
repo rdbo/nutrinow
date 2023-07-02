@@ -3,12 +3,14 @@ import { ref } from "vue";
 import { RouterLink, RouterView } from "vue-router";
 import { useErrorStore } from "@/stores/error";
 import { useSessionStore } from "@/stores/session";
+import { useProfileStore } from "@/stores/profile";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import { Bars3Icon } from "@heroicons/vue/20/solid";
-import { api_post } from "./composables/api_request.js";
+import { api_get, api_post } from "./composables/api_request.js";
 
 const errorStore = useErrorStore();
 const sessionStore = useSessionStore();
+const profileStore = useProfileStore();
 
 const showNavItems = ref(false); // show navigation items on mobile
 
@@ -27,7 +29,22 @@ function updateSession() {
     sessionStore.id = $cookies.get("session_id");
 }
 
+
+function updateUserInfo() {
+    api_get("user", null,
+        (data) => {
+            profileStore.name = data.name;
+            profileStore.birthdate = data.birthdate;
+            profileStore.weight = data.weight;
+            profileStore.gender = data.gender;
+        }
+    );
+}
+
 updateSession();
+if (sessionStore.id) {
+    updateUserInfo();
+}
 
 // Periodically update session cookie (the server can force a logout)
 setInterval(updateSession, 100);
@@ -62,6 +79,17 @@ setInterval(updateSession, 100);
                                 </li>
                                 <li v-if="!sessionStore.id">
                                     <RouterLink :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
+                                </li>
+                                <li v-if="sessionStore.id">
+                                    <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center flow-reverse flex-row-reverse md:flex-row w-fit">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-300 mx-2">
+                                                <img v-if="profileStore.gender == 'F'" src="@/assets/imgs/female.svg" class="origin-top scale-150"/>
+                                                <img v-else src="@/assets/imgs/male.svg" class="origin-top scale-150"/>
+                                            </div>
+                                            <p>{{ profileStore.name }}</p>
+                                        </div>
+                                    </RouterLink>
                                 </li>
                                 <li v-if="sessionStore.id">
                                     <div @click="logout" class="cursor-pointer nav-item">Logout</div>

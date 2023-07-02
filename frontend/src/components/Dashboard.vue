@@ -13,9 +13,11 @@ import ModalDeleteMealFood from "./ModalDeleteMealFood.vue";
 import ModalFoodViewer from "./ModalFoodViewer.vue";
 import ModalSpinner from "./ModalSpinner.vue";
 import { useErrorStore } from "@/stores/error";
+import { useProfileStore } from "@/stores/profile";
 import { api_get, api_post } from "../composables/api_request.js";
 
 const errorStore = useErrorStore();
+const profileStore = useProfileStore();
 
 const curDietIndex = ref(0);
 const diets = ref([]);
@@ -159,7 +161,14 @@ function updateDiets(useLast = false) {
 
 function updateUserInfo() {
     api_get("user", null,
-        (data) => { userInfo.value = data; }
+        (data) => {
+            // TODO: Remove 'userInfo' and use only 'profileStore'
+            userInfo.value = data;
+            profileStore.name = data.name;
+            profileStore.birthdate = data.birthdate;
+            profileStore.weight = data.weight;
+            profileStore.gender = data.gender;
+        }
     );
 }
 
@@ -247,7 +256,7 @@ sessionStorage.removeItem("meal_id");
 
 <template>
     <div class="mx-1 sm:mx-8 mt-2 mb-8 text-gray-800 max-w-4xl lg:mx-auto" v-if="userInfo">
-        <h1 class="text-2xl max-md:text-center">Dashboard - {{ userInfo.name }}</h1>
+        <h1 class="text-2xl max-md:text-center">Dashboard</h1>
         <div>
             <div class="my-4">
                 <DietDropdown @update-cur-diet="updateCurDiet" @new-diet="showNewDiet = true" @edit-cur-diet="showEditDiet = true" @delete-cur-diet="showDeleteDiet = true" @duplicate-diet="showDuplicateDiet = true" :curDietIndex="curDietIndex" :diets="diets"/>
