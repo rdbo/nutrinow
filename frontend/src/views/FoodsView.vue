@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
+import { api_post } from "../composables/api_request.js";
 import { useErrorStore } from "@/stores/error";
 import { MagnifyingGlassIcon } from "@heroicons/vue/20/solid";
 import SearchFood from "../components/SearchFood.vue";
@@ -37,6 +38,7 @@ function updateResults() {
 
     controller = new AbortController();
 
+    // TODO: Refactor this API request
     axios.get("/api/food_search/" + foodName, {
         signal: controller.signal
     })
@@ -88,19 +90,12 @@ function addFoodToMeal(servingId, amount) {
     addMealServingData.append("meal_id", mealId);
     addMealServingData.append("serving_id", servingId);
     addMealServingData.append("amount", amount);
-    axios.post("/api/add_meal_serving", addMealServingData)
-    .then(function (response) {
-        // TODO: Show user if succeeded or not
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
+    api_post("add_meal_serving", addMealServingData,
+        (_data) => {
+            // TODO: Show to the user if this operation succeeded or not
+            selectedFood.value = null;
         }
-
-        selectedFood.value = null;
-    })
-    .catch (function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/add_meal_serving)");
-    });
+    );
 }
 
 // search for food in case the URL parameter 'foodName' is set
