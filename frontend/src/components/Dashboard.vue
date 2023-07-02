@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
 import DietDropdown from "./DietDropdown.vue";
 import Meal from "./Meal.vue";
 import NutritionTable from "./NutritionTable.vue";
@@ -14,6 +13,7 @@ import ModalDeleteMealFood from "./ModalDeleteMealFood.vue";
 import ModalFoodViewer from "./ModalFoodViewer.vue";
 import ModalSpinner from "./ModalSpinner.vue";
 import { useErrorStore } from "@/stores/error";
+import { api_get, api_post } from "../composables/api_request.js";
 
 const errorStore = useErrorStore();
 
@@ -37,52 +37,27 @@ function updateCurDiet(index) {
     localStorage.setItem("curDiet", diets.value[curDietIndex.value].id);
 
     // load diet meals
-    axios.get("/api/meals/" + diets.value[curDietIndex.value].id)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            meals.value = [];
-            return;
-        }
+    let diet = diets.value[curDietIndex.value];
 
-        meals.value = response.data.meals;
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/meals/<diet_id>)");
-        meals.value = [];
-    });
+    api_get("meals/" + diet.id, null,
+        (data) => { meals.value = data.meals; },
+        () => { meals.value = []; }
+    );
 
-    axios.get("/api/diet_nutrition/" + diets.value[curDietIndex.value].id)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            diets.value[curDietIndex.value].desired_nutrition = [];
-            return;
-        }
-
-        diets.value[curDietIndex.value].desired_nutrition = response.data.nutrition;
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/diet_nutrition/<diet_id>)");
-        diets.value[curDietIndex.value].desired_nutrition = [];
-    });
+    api_get("diet_nutrition/" + diet.id, null,
+        (data) => { diet.desired_nutrition = data.nutrition; },
+        () => { diet.desired_nutrition = []; }
+    );
 }
 
 function createNewDiet(name) {
     showNewDiet.value = false;
     let newDietData = new URLSearchParams();
     newDietData.append("diet_name", name);
-    axios.post("/api/new_diet", newDietData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-        updateDiets(true);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/new_diet)");
-    });
+
+    api_post("new_diet", newDietData,
+        (_data) => { updateDiets(true); }
+    );
 }
 
 function editCurDiet(name) {
@@ -90,41 +65,30 @@ function editCurDiet(name) {
     let editDietData = new URLSearchParams();
     editDietData.append("diet_id", diets.value[curDietIndex.value].id);
     editDietData.append("diet_name", name);
-    axios.post("/api/edit_diet", editDietData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
 
-        diets.value[curDietIndex.value].name = name;
-        updateCurDiet(curDietIndex.value); // refresh cookie
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/edit_diet)");
-    });
+    let diet = diets.value[curDietIndex.value];
+    api_post("edit_diet", editDietData,
+        (data) => {
+            diet.name = name;
+            updateCurDiet(curDietIndex.value); // refresh cookie
+        }
+    );
 }
 
 function deleteCurDiet() {
     showDeleteDiet.value = false;
     let deleteDietData = new URLSearchParams();
     deleteDietData.append("diet_id", diets.value[curDietIndex.value].id);
-    axios.post("/api/delete_diet", deleteDietData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
 
-        let oldIndex = curDietIndex.value;
-        curDietIndex.value = 0;
-        diets.value.splice(oldIndex, 1);
-        if (diets.value.length > 0)
-            updateCurDiet(curDietIndex.value);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/delete_diet)");
-    });
+    api_post("delete_diet", deleteDietData,
+        (_data) => {
+            let oldIndex = curDietIndex.value;
+            curDietIndex.value = 0;
+            diets.value.splice(oldIndex, 1);
+            if (diets.value.length > 0)
+                updateCurDiet(curDietIndex.value);
+        }
+    );
 }
 
 function duplicateCurDiet(name) {
@@ -132,17 +96,10 @@ function duplicateCurDiet(name) {
     let duplicateDietData = new URLSearchParams();
     duplicateDietData.append("diet_id", diets.value[curDietIndex.value].id);
     duplicateDietData.append("diet_name", name);
-    axios.post("/api/duplicate_diet", duplicateDietData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-        updateDiets(true);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/duplicate_diet)");
-    });
+
+    api_post("duplicate_diet", duplicateDietData,
+        (_data) => { updateDiets(true); }
+    );
 }
 
 function addMeal(mealName) {
@@ -150,18 +107,10 @@ function addMeal(mealName) {
     let addMealData = new URLSearchParams();
     addMealData.append("diet_id", diets.value[curDietIndex.value].id);
     addMealData.append("meal_name", mealName);
-    axios.post("/api/add_meal", addMealData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
 
-        meals.value.push(response.data.meal);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/add_meal)");
-    });
+    api_post("add_meal", addMealData,
+        (data) => { meals.value.push(data.meal); }
+    );
 }
 
 function deleteMeal() {
@@ -170,85 +119,54 @@ function deleteMeal() {
 
     let deleteMealData = new URLSearchParams();
     deleteMealData.append("meal_id", mealId);
-    axios.post("/api/delete_meal", deleteMealData)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
 
-        for (let i = 0; i < meals.value.length; ++i) {
-            if (meals.value[i].id == mealId) {
-                meals.value.splice(i, 1);
-                break;
+    api_post("delete_meal", deleteMealData,
+        (data) => {
+            for (let i = 0; i < meals.value.length; ++i) {
+                if (meals.value[i].id == mealId) {
+                    meals.value.splice(i, 1);
+                    break;
+                }
             }
         }
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/delete_meal)");
-    })
+    );
 }
 
 function updateDiets(useLast = false) {
-    axios.get("/api/diets")
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-
-        diets.value = response.data.diets;
-        if (!diets.value.length) {
-            curDietIndex.value = 0;
-            return;
-        }
-
-        let curDietCookie = localStorage.getItem("curDiet");
-        let newCurDietIndex = 0;
-        if (useLast) {
-            newCurDietIndex = diets.value.length - 1;
-        } else if (curDietCookie) {
-            for (let i = 0; i < diets.value.length; ++i) {
-                if (curDietCookie == diets.value[i].id)
-                    newCurDietIndex = i;
+    api_get("diets", null,
+        (data) => {
+            diets.value = data.diets;
+            if (!diets.value.length) {
+                curDietIndex.value = 0;
+                return;
             }
-        }
 
-        updateCurDiet(newCurDietIndex);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/diets)");
-    });
+            let curDietCookie = localStorage.getItem("curDiet");
+            let newCurDietIndex = 0;
+            if (useLast) {
+                newCurDietIndex = diets.value.length - 1;
+            } else if (curDietCookie) {
+                for (let i = 0; i < diets.value.length; ++i) {
+                    if (curDietCookie == diets.value[i].id)
+                        newCurDietIndex = i;
+                }
+            }
+
+            updateCurDiet(newCurDietIndex);   
+        }
+    );
 }
 
 function updateUserInfo() {
-    axios.get("/api/user")
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-
-        userInfo.value = response.data;
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/user)");
-    });
+    api_get("user", null,
+        (data) => { userInfo.value = data; }
+    );
 }
 
 function updateNutrients() {
-    axios.get("/api/nutrients")
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-
-        nutrients.value = response.data.nutrients;
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/nutrients)");
-    });
+    api_get("nutrients", null, 
+        (data) => { nutrients.value = data.nutrients; }
+    );
 }
 
 function getMealById(meal_id) {
@@ -280,36 +198,17 @@ function deleteMealServing() {
 
     let deleteMealServingForm = new URLSearchParams();
     deleteMealServingForm.append("meal_serving_id", food.meal_serving_id);
-    axios.post("/api/delete_meal_serving", deleteMealServingForm)
-    .then(function (response) {
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-
-        meals.value[food_indices[0]].foods.splice(food_indices[1], 1);
-    })
-    .catch(function (err) {
-        errorStore.msgs.push("Failed to connect to the server (/api/delete_meal_serving)");
-    });
+    api_post("delete_meal_serving", deleteMealServingForm,
+        (data) => { meals.value[food_indices[0]].foods.splice(food_indices[1], 1); } // TODO: Refactor
+    );
 }
 
 function editFoodViewer() {
     let food = editMealFoodRef.value;
-    axios.get("/api/food/" + food.id)
-    .then(function (response) {
-        if (response.data.err) {
-            editMealFoodRef.value = null;
-            errorStore.msgs.push(response.data.err);
-            return;
-        }
-
-        editFoodViewerRef.value = response.data.food;
-    })
-    .catch(function (response) {
-        editMealFoodRef.value = null;
-        errorStore.msgs.push("Failed to connect to the server (/api/food)");
-    });   
+    api_get("food/" + food.id, null,
+        (data) => { editFoodViewerRef.value = data.food; },
+        () => { editMealFoodRef.value = null; }
+    );
 }
 
 function editMealFood(servingId, amount) {
@@ -318,26 +217,21 @@ function editMealFood(servingId, amount) {
     editMealServingForm.append("meal_serving_id", mealServingId);
     editMealServingForm.append("serving_id", servingId);
     editMealServingForm.append("amount", amount);
-    axios.post("/api/edit_meal_serving", editMealServingForm)
-    .then(function (response) {
-        if (response.data.err) {
+
+    api_post("edit_meal_serving", editMealServingForm,
+        (data) => {
+            // TODO: Avoid reloading the whole diet
+            updateCurDiet(curDietIndex.value);
+
             editMealFoodRef.value = null;
             editFoodViewerRef.value = null;
-            errorStore.msgs.push(response.data.err);
-            return;
+        },
+        
+        () => {
+            editMealFoodRef.value = null;
+            editFoodViewerRef.value = null;
         }
-
-        // TODO: Avoid reloading the whole diet
-        updateCurDiet(curDietIndex.value);
-
-        editMealFoodRef.value = null;
-        editFoodViewerRef.value = null;
-    })
-    .catch(function (err) {
-        editMealFoodRef.value = null;
-        editFoodViewerRef.value = null;
-        errorStore.msgs.push("Failed to connect to the server (/api/edit_meal_serving)");
-    });
+    );
 }
 
 function viewMealFood(food) {
