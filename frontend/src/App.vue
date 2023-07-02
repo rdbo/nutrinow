@@ -5,7 +5,7 @@ import { useErrorStore } from "@/stores/error";
 import { useSessionStore } from "@/stores/session";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import { Bars3Icon } from "@heroicons/vue/20/solid";
-import axios from "axios";
+import { api_post } from "./composables/api_request.js";
 
 const errorStore = useErrorStore();
 const sessionStore = useSessionStore();
@@ -20,9 +20,7 @@ function logout() {
     }
 
     // tell the server to delete the session
-    axios.post("/api/logout")
-    .then(delete_session)
-    .catch(delete_session);
+    api_post("logout", null, delete_session, delete_session);
 }
 
 function updateSession() {
