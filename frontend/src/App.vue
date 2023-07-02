@@ -171,7 +171,7 @@ li {
 }
 
 .nav-item.router-link-active {
-    @apply bg-orange-100 text-gray-800 lg:bg-transparent lg:border-orange-200;
+    @apply bg-orange-100 text-gray-800 lg:bg-transparent lg:border-orange-300;
 }
 
 /* TODO: Ensure that 'max-width' is always the same as the size of an 'lg' screen */
