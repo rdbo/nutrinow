@@ -86,13 +86,34 @@ setInterval(updateSession, 100);
                                     </RouterLink>
                                 </li>
                                 <li v-if="!sessionStore.id">
-                                    <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">About</RouterLink>
+                                    <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center w-fit">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/question.svg"/>
+                                            </div>
+                                            <p>About</p>
+                                        </div>
+                                    </RouterLink>
                                 </li>
                                 <li v-if="!sessionStore.id">
-                                    <RouterLink :to="{ name: 'login' }" class="nav-item" aria-current="page">Login</RouterLink>
+                                    <RouterLink :to="{ name: 'login' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center w-fit">
+                                            <div class="h-10 w-10 overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/login.svg"/>
+                                            </div>
+                                            <p>Login</p>
+                                        </div>
+                                    </RouterLink>
                                 </li>
                                 <li v-if="!sessionStore.id">
-                                    <RouterLink :to="{ name: 'register' }" class="nav-item" aria-current="page">Register</RouterLink>
+                                    <RouterLink :to="{ name: 'register' }" class="nav-item" aria-current="page">
+                                        <div class="flex items-center w-fit">
+                                            <div class="h-10 w-10 overflow-hidden mx-2">
+                                                <img src="@/assets/imgs/create.svg"/>
+                                            </div>
+                                            <p>Register</p>
+                                        </div>                                    
+                                    </RouterLink>
                                 </li>
                                 <li v-if="sessionStore.id">
                                     <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">
