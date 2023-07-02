@@ -4,7 +4,7 @@ import { ref } from "vue";
 import { useErrorStore } from "@/stores/error";
 import { useSessionStore } from "@/stores/session";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/20/solid";
-import axios from "axios";
+import { api_post } from "../composables/api_request.js";
 
 const router = useRouter();
 const errorStore = useErrorStore();
@@ -47,20 +47,10 @@ function registerHandler(e) {
     registerData.append("gender", genderForm.value);
     registerData.append("weight", weightForm.value);
 
-    axios.post("/api/register", registerData)
-    .then(function (response) {
-        creatingAccount.value = false;
-        if (response.data.err) {
-            errorStore.msgs.push(response.data.err);
-            creatingAccount.value = false;
-        } else {
-            router.push({ name: "login" });
-        }
-    })
-    .catch(function (err) {
-        creatingAccount.value = false;
-        errorStore.msgs.push("Failed to connect to the server (/api/register)");
-    });
+    api_post("register", registerData,
+        (_data) => { router.push({ name: "login" }); },
+        () => { creatingAccount.value = false; }
+    );
 }
 
 /* redirect to / if user is logged in */
