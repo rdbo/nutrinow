@@ -97,7 +97,7 @@ setInterval(updateSession, 100);
                                 <li v-if="sessionStore.id">
                                     <RouterLink :to="{ name: 'about' }" class="nav-item" aria-current="page">
                                         <div class="flex items-center w-fit">
-                                            <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-300 mx-2">
+                                            <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-300 mx-2">
                                                 <img v-if="profileStore.gender == 'F'" src="@/assets/imgs/female.svg" class="origin-top scale-150"/>
                                                 <img v-else src="@/assets/imgs/male.svg" class="origin-top scale-150"/>
                                             </div>
@@ -150,11 +150,12 @@ li {
 }
 
 .nav-item.router-link-active {
-    @apply bg-lime-400 text-gray-800 md:bg-transparent md:text-lime-500 md:border-lime-400;
+    @apply bg-orange-100 text-gray-800 md:bg-transparent md:border-orange-200;
 }
 
 /* TODO: Ensure that 'max-width' is always the same as the size of an 'md' screen */
 /* TODO: Only play animations after the menu has been already activated (not on page load) */
+/* TODO: Fix for width = 768px */
 @media (max-width: 768px) {
     .show-nav-items {
         transform-origin: top;
