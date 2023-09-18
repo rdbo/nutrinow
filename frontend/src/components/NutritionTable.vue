@@ -45,10 +45,11 @@ const nutritionTable = computed(() => {
 
     let nutrient_arr = [];
     let calories = 0;
+    /* TODO: Use 'calculateCalories' from 'foods.js' */
     let calorieCvtTable = {
-        "Protein": 2.0,
+        "Protein": 4.0,
         "Carbohydrates": 4.0,
-        "Fats": 4.0
+        "Fats": 9.0
     };
     for (const nutrient in nutrient_map) {
         let newNutrient = {

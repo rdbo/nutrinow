@@ -32,6 +32,10 @@ export function getNutrientsFromMealFood(food) {
     return nutrient_list;
 }
 
+export function calculateCalories(protein, carbo, fats) {
+    return protein * 4.0 + carbo * 4.0 + fats * 9.0;
+}
+
 export function getDisplayNutrients(nutrients) {
     let displayNutrients = {
         "Protein": { amount: 0, unit: ""},
@@ -47,7 +51,7 @@ export function getDisplayNutrients(nutrients) {
     }
 
     // calculate calories based on other macronutrients
-    let calories = Number(displayNutrients["Protein"].amount * 4 + displayNutrients["Carbohydrates"].amount * 4 + displayNutrients["Fats"].amount * 9).toFixed(1);
+    let calories = Number(calculateCalories(displayNutrients["Protein"].amount, displayNutrients["Carbohydrates"].amount, displayNutrients["Fats"].amount)).toFixed(1);
     if (calories > 0) {
         displayNutrients["Calories"].amount = calories;
         displayNutrients["Calories"].unit = "kcal";
