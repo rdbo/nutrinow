@@ -44,16 +44,36 @@ const nutritionTable = computed(() => {
     });
 
     let nutrient_arr = [];
+    let calories = 0;
+    let calorieCvtTable = {
+        "Protein": 2.0,
+        "Carbohydrates": 4.0,
+        "Fats": 4.0
+    };
     for (const nutrient in nutrient_map) {
-        nutrient_arr.push({
+        let newNutrient = {
             name: nutrient,
             amount: nutrient_map[nutrient].amount,
             unit: nutrient_map[nutrient].unit,
             min_desired: nutrient_map[nutrient].min_desired,
             max_desired: nutrient_map[nutrient].max_desired,
             relative: nutrient_map[nutrient].relative
-        });
+        };
+
+        nutrient_arr.push(newNutrient);
+        if (calorieCvtTable.hasOwnProperty(newNutrient.name)) {
+            calories += newNutrient.amount * calorieCvtTable[newNutrient.name];
+        }
     }
+    /* Show calories on start of nutrition table */
+    nutrient_arr.unshift({
+        name: "Calories",
+        amount: calories.toFixed(1),
+        unit: "kcal",
+        min_desired: null,
+        max_desired: null,
+        relative: null
+    });
 
     return nutrient_arr;
 });

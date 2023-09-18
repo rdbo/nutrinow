@@ -1,4 +1,6 @@
 <script setup>
+/* TODO: Fix mess with loading screen showing based on useless refs */
+
 import { ref } from "vue";
 import DietDropdown from "./DietDropdown.vue";
 import Meal from "./Meal.vue";
@@ -29,7 +31,9 @@ const showDuplicateDiet = ref(false);
 const deleteMealFood = ref(null);
 const deleteMealId = ref(null); // will prompt for meal deletion if not null
 const editMealFoodRef = ref(null); // will prompt for edit meal serving if not null
-const editFoodViewerRef = ref(null); // will show the food viewer
+const editFoodViewerRef = ref(null); // will show the food editor
+const viewMealFoodRef = ref(null); // will show the loading screen if not null
+const viewFoodViewerRef = ref(null); // will show the food viewer
 const meals = ref([]);
 const nutrients = ref([]);
 
@@ -230,7 +234,11 @@ function editMealFood(servingId, amount) {
 }
 
 function viewMealFood(food) {
-    console.log(food);
+    viewMealFoodRef.value = food;
+    api_get("food/" + food.id, null,
+        (data) => { viewFoodViewerRef.value = data.food },
+        () => { viewMealFoodRef.value = null; }
+    );
 }
 
 updateDiets();
@@ -256,8 +264,8 @@ sessionStorage.removeItem("meal_id");
                 <ModalAddMeal @cancel-add="showAddMeal = false" @add-meal="addMeal" v-if="showAddMeal"/>
                 <ModalDeleteMeal @cancel-delete="deleteMealId = null" @delete-meal="deleteMeal" :meal="getMealById(deleteMealId)" v-if="deleteMealId"/>
                 <ModalDeleteMealFood v-if="deleteMealFood" :food="deleteMealFood" @cancel-delete="deleteMealFood = null" @delete-meal-food="deleteMealServing"/>
-                <ModalSpinner v-if="editMealFoodRef && !editFoodViewerRef"/>
-                <ModalFoodViewer v-if="editFoodViewerRef" :food="editFoodViewerRef" @close="editMealFoodRef = null; editFoodViewerRef = null" @add-food="editMealFood"/>
+                <ModalSpinner v-if="(editMealFoodRef && !editFoodViewerRef) || (viewMealFoodRef && !viewFoodViewerRef)"/>
+                <ModalFoodViewer v-if="editFoodViewerRef" :food="editFoodViewerRef" @close="editMealFoodRef = null; editFoodViewerRef = null; viewMealFoodRef = null; viewFoodViewerRef = null;" @add-food="editMealFood"/>
             </div>
             <div v-else class="flex flex-col justify-center items-center text-2xl text-gray-500 text-center">
                 <h1>No Diets Found</h1>
