@@ -17,7 +17,7 @@ use uuid::Uuid;
 pub async fn create_user_account(data: &RegisterForm, dbpool: &PgPool) -> Result<(), sqlx::Error> {
     let password_hash = sha256str(data.password.as_str());
 
-    let query_result = sqlx::query("INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES ($1, $2, $3, $4, $5, $6)")
+    sqlx::query("INSERT INTO user_account(name, email, gender, weight, birthdate, password_hash) VALUES ($1, $2, $3, $4, $5, $6)")
         .bind(&data.name)
         .bind(&data.email)
         .bind(data.gender.to_string())
