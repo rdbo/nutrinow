@@ -29,14 +29,6 @@ pub async fn create_user_account(data: &RegisterForm, dbpool: &PgPool) -> Result
 
     let new_user_id: i32 = query_result.try_get("id")?;
 
-    // TODO: Remove this when no longer necessary
-    sqlx::query("INSERT INTO credentials(user_id, password) VALUES ($1, $2)")
-        .bind(new_user_id)
-        .bind(&data.password)
-        .execute(dbpool)
-        .await
-        .ok();
-
     Ok(())
 }
 
