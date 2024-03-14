@@ -12,7 +12,7 @@ It calculates your daily nutritional values based on the foods you pick,
 allowing you to adapt accordingly.
 
 # License
-All files in this repository are licensed under the GNU Affero General Public License - Version 3.0 (GNU AGPLv3.0), with the exception of:
+All files in this repository are licensed under the GNU Affero General Public License - Version 3.0 (GNU AGPLv3.0, no later versions allowed), with the exception of:
 
 `frontend/src/assets/imgs/*`: Each file has its own license. Read the `frontend/src/assets/imgs/CREDITS` file for more information.
 
