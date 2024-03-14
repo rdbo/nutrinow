@@ -1,6 +1,8 @@
 # NutriNow
 Make the diet of your dreams
 
+![mobile](mobile.png)
+![mobile_menu](mobile_menu.png)
 ![dashboard](dashboard.png)
 ![foods](foods.png)
 ![nutrition](nutrition.png)
